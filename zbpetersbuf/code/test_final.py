@@ -2,6 +2,7 @@
 test_final.py
 """
 import final as fin
+import numpy as np
 
 def test_dummy():
     """This tests the dummy function"""
@@ -15,7 +16,7 @@ def test_fah_to_kel():
 def test_find_fah():
     """this tests the function that finds the temp in .md files,
     using the file i made for this unit test, LL13_sinewalktest.md"""
-    assert fin.find_fah('LL13_sinewalktest.md')==30
+    assert np.all(fin.find_fah('LL13_sinewalktest.md',2)==[30, 29])
 
 def test_filenamelister():
     """this tests the function that finds markdown files related to an experiment name"""
