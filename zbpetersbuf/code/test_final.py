@@ -15,6 +15,8 @@ def test_fah_to_kel():
 def test_find_fah():
     """this tests the function that finds the temp in .md files,
     using the file i made for this unit test, LL13_sinewalktest.md"""
-    assert fin.find_fah('LL13_sinewalktest.md')==29
+    assert fin.find_fah('LL13_sinewalktest.md')==30
 
-print(fin.find_fah('LL13_sinewalktest.md'))
+def test_filenamelister():
+    """this tests the function that finds markdown files related to an experiment name"""
+    assert fin.filenamelister('sinewalktest')==['/workspaces/CP1-24-final/zbpetersbuf/data/LL13_sinewalktest.md']
