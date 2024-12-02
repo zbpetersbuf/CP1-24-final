@@ -23,6 +23,8 @@ def find_fah(file_name,n):
     ie if you wanted to know the temp recorded in the test file LL13_sinewalktest.md, 
     you would enter 'LL13_sinewalktest.md' for file_name"""
 
+    #this is correct for one file not 20
+
     filpath = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', file_name.strip())
     ftime = np.zeros(n)
 
@@ -40,3 +42,5 @@ def filenamelister(exp_name):
     pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', f"*{exp_name.strip()}*.md")
     md_files = glob.glob(pattern)
     return md_files
+
+    
