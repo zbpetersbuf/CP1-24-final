@@ -53,10 +53,12 @@ def stepnumb(datta):
         raise ValueError("Data is not evenly spaced or data points are missing")
         #print("Data is not evenly spaced or data points are missing")
         #return None
+
+
     n = 0
     while len(tim) > 2**n:
         n+=1
-#
+
     return xax[:(2**(n-1))], yax[:(2**(n-1))], tim[:(2**(n-1))]
 
 def fitsincuve(datta):
@@ -69,9 +71,17 @@ def fitsincuve(datta):
     sin_fit = sinfunk(np.array(xax), a, b, c, d)
 
     isfft = np.fft.fft(sin_fit)
-    magnitude = np.abs(np.fft.fft(sin_fit))
+    mag = np.abs(np.fft.fft(sin_fit))
+    power = np.abs(mag)[:n // 2]
+    return isfft, power
 
-    return isfft, magnitude
+
+def inv_fft(isfft):
+
+    newthing = np.fft.ifft(isfft)
+    return np.abs(newthing)
+
+
 
 def freqfinder(datta, use_filter='no', selec_filter=None):
     """this find the frequencies form the data"""

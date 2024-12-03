@@ -70,3 +70,10 @@ plwalk(datforgraf,"Behold a circle","walking_cir.png")
 triwalk = pd.read_csv('zbpetersbuf/data/LL09_triangle.csv')
 trwal = gpsloc(triwalk)
 plwalk(trwal,"Walking in a triangle near the bus stop","walking_tri.png")
+
+
+#deleate this
+
+sinwalk = pd.read_csv('zbpetersbuf/data/Raw Data.csv')
+sinwalkb = gpsloc(sinwalk)
+plwalk(sinwalkb,"Walking in a triangle near the bus stop","walking_tri.png")
