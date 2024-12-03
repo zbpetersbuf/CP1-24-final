@@ -1,14 +1,15 @@
 """
 final.py
+
+just relized that i might have to make sure that the sin i walk in is par
+to the 'y' axis or else i will need to remove the slant of the wave
 """
 import re
 import os
 import glob
 import numpy as np
-
-def dummy(x):
-    """this is a dummy file"""
-    return (x+2)**2
+import workinh as wrk
+from scipy.optimize import curve_fit
 
 def fah_to_kel(f):
     """Converts from Fahrenheit to Kelvin enter the recorded temp as f"""
@@ -18,21 +19,16 @@ def fah_to_kel(f):
         return None
     return (5*(f-32))/9 + 273.15
 
-def find_fah(file_name,n):
+def find_fah(file_name):
     """this function finds the temp recorded for the file you enter in file_name
     ie if you wanted to know the temp recorded in the test file LL13_sinewalktest.md, 
     you would enter 'LL13_sinewalktest.md' for file_name"""
 
-    #this is correct for one file not 20
-
     filpath = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', file_name.strip())
-    ftime = np.zeros(n)
 
     with open(filpath, 'r', encoding='utf-8') as f:
         numbs = re.findall(r'\d+', f.read())
-        for i in range(n):
-            ftime[i] = int(numbs[1+i*11])
-    return ftime
+    return int(numbs[0])
 
 def filenamelister(exp_name):
     """this function finds and returns all markdown files of an experiment type
@@ -43,4 +39,57 @@ def filenamelister(exp_name):
     md_files = glob.glob(pattern)
     return md_files
 
-    
+def sinfunk(x, a, b, c, d):
+    """this is just the fit function for the fit stuff"""
+    return a * np.sin(b*x + c) + d
+
+def stepnumb(datta):
+    """this just shortens the length of the data to the closest 2^n"""
+    tim = zip(datta.loc[:, 'Time (s)'])
+    xax, yax = wrk.gpsloc(datta)
+    compare = [len(tim), len(xax), len(yax)]
+    alcomp = np.all(compare)
+    if not alcomp:
+        raise ValueError("Data is not evenly spaced or data points are missing")
+        #print("Data is not evenly spaced or data points are missing")
+        #return None
+    n = 0
+    while len(tim) > 2**n:
+        n+=1
+#
+    return xax[:(2**(n-1))], yax[:(2**(n-1))], tim[:(2**(n-1))]
+
+def fitsincuve(datta):
+    """this is the fft thing, returns the magnitude for the funk"""
+    #this onle works when the sin wave is parrellel to the x axis
+    xax = stepnumb(datta)[0]
+    yax = stepnumb(datta)[1]
+
+    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d)
+
+    isfft = np.fft.fft(sin_fit)
+    magnitude = np.abs(np.fft.fft(sin_fit))
+
+    return isfft, magnitude
+
+def freqfinder(datta, use_filter='no', selec_filter=None):
+    """this find the frequencies form the data"""
+    tim = stepnumb(datta)[2]
+
+    n = len(tim)
+
+    freq = np.fft.fftfreq(n, tim/n)
+    magnitude = fitsincuve(datta)[1]
+
+    use_filt = 0
+    filt = 0.0
+    yes_no = use_filter.strip().lower()
+    if yes_no == 'yes':
+        filt = selec_filter
+        use_filt = 1
+        threshold = filt * np.max(magnitude)
+        main_frequencies = freq[magnitude > threshold]
+        return main_frequencies, use_filt
+
+    return freq, use_filt
