@@ -66,12 +66,18 @@ def fitsincuve(datta):
     #this onle works when the sin wave is parrellel to the x axis
     xax = stepnumb(datta)[0]
     yax = stepnumb(datta)[1]
+    #this is a golden rule while loop
+    #t = 0
+    #error=0
+    #while error > 0.1:
     # matrix = [[cos(t), sin(t)],[-sin(t),cos(t)]].*[[xax],[yax]]
     # xnew, ynew = matrix[0], matrix[1]
     # this has to be a 2x2 nmatrix trans, then i
     a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
     sin_fit = sinfunk(np.array(xax), a, b, c, d)
+    # error = descreet for minus my fft
 
+    
     isfft = np.fft.fft(sin_fit)
     mag = np.abs(np.fft.fft(sin_fit))
     power = np.abs(mag)[:n // 2]
