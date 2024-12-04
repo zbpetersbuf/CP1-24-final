@@ -54,15 +54,59 @@ def stepnumb(datta):
         #print("Data is not evenly spaced or data points are missing")
         #return None
 
-
     n = 0
     while len(tim) > 2**n:
         n+=1
 
     return xax[:(2**(n-1))], yax[:(2**(n-1))], tim[:(2**(n-1))]
 
+
+
+def analyze_signal(datta, selec_filter=0.1):
+    """finds the frequencies"""
+
+    xax = stepnumb(datta)[0]
+    yax = stepnumb(datta)[1]
+
+    n = len(xax)
+    fs = n/xax
+    isfft = np.fft.fft(yax, )
+    
+    freq = np.fft.fftfreq(n, 1/fs)
+
+    magnitude = np.abs(isfft)
+    threshold = selec_filter * np.max(magnitude)
+    main_frequencies = freq[magnitude > threshold]
+
+    return freq, main_frequencies
+
+
+
 def fitsincuve(datta):
-    """this is the fft thing, returns the magnitude for the funk"""
+
+    xax = stepnumb(datta)[0]
+    yax = stepnumb(datta)[1]
+    #ivsfft main feq
+    #ivsfft freq
+    
+
+    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d)
+    isfft = np.fft.fft(sin_fit)
+    mag = np.abs(np.fft.fft(sin_fit))
+    n=len(xax)
+    power = np.abs(mag)[:n // 2]
+    return isfft, power
+
+
+
+
+
+
+
+"""
+def fitsincuve(datta):
+   
     #this onle works when the sin wave is parrellel to the x axis
     xax = stepnumb(datta)[0]
     yax = stepnumb(datta)[1]
@@ -82,6 +126,8 @@ def fitsincuve(datta):
     mag = np.abs(np.fft.fft(sin_fit))
     power = np.abs(mag)[:n // 2]
     return isfft, power
+"""
+
 
 
 def inv_fft(isfft):
