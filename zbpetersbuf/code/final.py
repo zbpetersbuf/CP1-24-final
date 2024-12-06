@@ -58,14 +58,15 @@ def stepnumb(datta):
     while len(tim) > 2**n:
         n+=1
 
-    return xax[:(2**(n-1))], yax[:(2**(n-1))], tim[:(2**(n-1))]
+    remv=(len(tim)-(2**(n-1)))/2
+
+    return xax[remv:-remv], yax[remv:-remv], tim[remv:-remv]
 
 
-def analyze_signal(datta, selec_filter=0.1):
+
+
+def analyze_signal(xax, yax, selec_filter):
     """finds the frequencies"""
-
-    xax = stepnumb(datta)[0]
-    yax = stepnumb(datta)[1]
 
     n = len(xax)
     fs = n/xax
@@ -75,9 +76,50 @@ def analyze_signal(datta, selec_filter=0.1):
 
     magnitude = np.abs(isfft)
     threshold = selec_filter * np.max(magnitude)
-    main_frequencies = freq[magnitude > threshold]
+    main_freq = freq[magnitude > threshold]
 
-    return freq, main_frequencies
+    return main_freq
+
+
+def adjs_Rsqr(yax,y_pred):
+    """computs the adjusted r^2 value"""
+
+    residuals = yax - y_pred
+    tss = np.sum((yax - np.mean(yax))**2)
+    rss = np.sum(residuals**2)
+    r2 = 1 - (rss / tss)
+    adj_r2 = 1 - ((1 - r2) * (len(yax) - 1)) / (len(yax) - 4 - 1)
+
+    return adj_r2
+
+
+"""def freq filter here"""
+
+
+def goldrule_sig(datta, toll=0.8, selec_filter=0.01):
+    xax = stepnumb(datta)[0]
+    yax = stepnumb(datta)[1]
+    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d)
+    isfft = np.fft.fft(sin_fit)
+
+    adr = adjs_Rsqr(yax,sin_fit)
+    i=0
+    while toll > adr:
+        """i need to add the freq filter"""
+
+        a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+        sin_fit = sinfunk(np.array(xax), a, b, c, d)
+
+
+        adr = adjs_Rsqr(yax,sin_fit)
+
+        if i>1000:
+            raise ValueError("Data is not evenly spaced or data points are missing")
+
+
+
+
 
 
 
