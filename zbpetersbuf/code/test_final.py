@@ -38,3 +38,10 @@ def test_sinfunk():
 def test_stepnumb():
     """this function test to make sure that the function stepnumb correctly checks to see if there are missing data entries and
     to make sure that it shortens the data to the nerrist 2^n"""
+
+
+
+
+[xax,yax]=[1,2,3][0,1]
+
+print(yax)

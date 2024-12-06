@@ -25,7 +25,6 @@ def find_fah(file_name):
     you would enter 'LL13_sinewalktest.md' for file_name"""
 
     filpath = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', file_name.strip())
-
     with open(filpath, 'r', encoding='utf-8') as f:
         numbs = re.findall(r'\d+', f.read())
     return int(numbs[0])
@@ -43,6 +42,13 @@ def sinfunk(x, a, b, c, d):
     """this is just the fit function for the fit stuff"""
     return a * np.sin(b*x + c) + d
 
+
+def fitsincuve(xax,yax):
+    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d)
+    isfft = np.fft.fft(sin_fit)
+    return isfft
+
 def stepnumb(datta):
     """this just shortens the length of the data to the closest 2^n"""
     tim = zip(datta.loc[:, 'Time (s)'])
@@ -53,76 +59,77 @@ def stepnumb(datta):
         raise ValueError("Data is not evenly spaced or data points are missing")
         #print("Data is not evenly spaced or data points are missing")
         #return None
-
     n = 0
     while len(tim) > 2**n:
         n+=1
-
     remv=(len(tim)-(2**(n-1)))/2
-
     return xax[remv:-remv], yax[remv:-remv], tim[remv:-remv]
-
-
-
-
-def analyze_signal(xax, yax, selec_filter):
-    """finds the frequencies"""
-
-    n = len(xax)
-    fs = n/xax
-    isfft = np.fft.fft(yax, )
-    
-    freq = np.fft.fftfreq(n, 1/fs)
-
-    magnitude = np.abs(isfft)
-    threshold = selec_filter * np.max(magnitude)
-    main_freq = freq[magnitude > threshold]
-
-    return main_freq
-
 
 def adjs_Rsqr(yax,y_pred):
     """computs the adjusted r^2 value"""
 
-    residuals = yax - y_pred
-    tss = np.sum((yax - np.mean(yax))**2)
+    residuals = yax-y_pred
+    tss = np.sum((yax-np.mean(yax))**2)
     rss = np.sum(residuals**2)
-    r2 = 1 - (rss / tss)
-    adj_r2 = 1 - ((1 - r2) * (len(yax) - 1)) / (len(yax) - 4 - 1)
+    r2 = 1-(rss/tss)
+    adj_r2 = 1-((1-r2)*(len(yax)-1))/(len(yax)-4-1)
 
     return adj_r2
 
 
-"""def freq filter here"""
 
+def freqfer(xax,yax, selec_filter=None):
+    """this find the frequencies form the data"""
 
-def goldrule_sig(datta, toll=0.8, selec_filter=0.01):
+    n = len(xax)
+    freq = np.fft.fftfreq(n, xax/n)
+    magnitude = fitsincuve(xax,yax)
+    threshold = selec_filter * np.max(magnitude)
+    main_frequencies = freq[magnitude>threshold]
+
+    return main_frequencies
+
+def inv_fft(isfft):
+
+    ynew = np.fft.ifft(isfft)
+    return np.abs(ynew) # im unsure about this if it should be abs or not
+
+def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.001, filt_int_add=0.01):
+    """This outpust the new y axis witch is the sdame asthe fft """
     xax = stepnumb(datta)[0]
     yax = stepnumb(datta)[1]
-    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
-    sin_fit = sinfunk(np.array(xax), a, b, c, d)
-    isfft = np.fft.fft(sin_fit)
+    adr = adjs_Rsqr(yax,fitsincuve(xax,yax))
 
-    adr = adjs_Rsqr(yax,sin_fit)
     i=0
-    while toll > adr:
-        """i need to add the freq filter"""
+    fft = freqfer(xax,yax, selec_filter)
 
-        a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
-        sin_fit = sinfunk(np.array(xax), a, b, c, d)
-
-
-        adr = adjs_Rsqr(yax,sin_fit)
+    while adjRsqrd > adr:
+        ynew = inv_fft(fft)
+        fft = freqfer(xax,ynew, selec_filter)
+        adr = adjs_Rsqr(yax,fitsincuve(xax,ynew))
+        selec_filter+=filt_int_add
+        i+=1
 
         if i>1000:
-            raise ValueError("Data is not evenly spaced or data points are missing")
+            raise ValueError("Went over 1,000 iterations")
+            #print("Data is not evenly spaced or data points are missing")
+            #return None
+    return ynew
+
+def fftpowerspec():
+
+     isfft = np.fft.fft(sin_fit)
+    mag = np.abs(np.fft.fft(sin_fit))
+    power = np.abs(mag)[:n // 2]
+    return power
+
+def inv_fft(isfft):
+
+    newthing = np.fft.ifft(isfft)
+    return np.abs(newthing)
 
 
-
-
-
-
-
+"""
 def fitsincuve(datta):
 
     xax = stepnumb(datta)[0]
@@ -140,8 +147,7 @@ def fitsincuve(datta):
     return isfft, power
 
 
-
-
+"""
 
 
 
@@ -171,15 +177,10 @@ def fitsincuve(datta):
 
 
 
-def inv_fft(isfft):
 
-    newthing = np.fft.ifft(isfft)
-    return np.abs(newthing)
-
-
-
+"""
 def freqfinder(datta, use_filter='no', selec_filter=None):
-    """this find the frequencies form the data"""
+
     tim = stepnumb(datta)[2]
 
     n = len(tim)
@@ -198,3 +199,4 @@ def freqfinder(datta, use_filter='no', selec_filter=None):
         return main_frequencies, use_filt
 
     return freq, use_filt
+"""
