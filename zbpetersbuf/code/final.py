@@ -61,7 +61,6 @@ def stepnumb(datta):
     return xax[:(2**(n-1))], yax[:(2**(n-1))], tim[:(2**(n-1))]
 
 
-
 def analyze_signal(datta, selec_filter=0.1):
     """finds the frequencies"""
 
