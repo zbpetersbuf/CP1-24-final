@@ -63,6 +63,7 @@ def stepnumb(datta):
     while len(tim) > 2**n:
         n+=1
     remv=(len(tim)-(2**(n-1)))/2
+    # i have to modul this to remove and add a half, ie no half. integers, remove one more from begining then end
     return xax[remv:-remv], yax[remv:-remv], tim[remv:-remv]
 
 def adjs_Rsqr(yax,y_pred):
@@ -78,21 +79,22 @@ def adjs_Rsqr(yax,y_pred):
 
 
 
-def freqfer(xax,yax, selec_filter=None):
+def ynewfunk(xax,yax, selec_filter=None):
     """this find the frequencies form the data"""
 
     n = len(xax)
     freq = np.fft.fftfreq(n, xax/n)
     magnitude = fitsincuve(xax,yax)
     threshold = selec_filter * np.max(magnitude)
-    main_frequencies = freq[magnitude>threshold]
+    ynew = magnitude[magnitude>threshold]
 
-    return main_frequencies
+    return ynew
 
 def inv_fft(isfft):
 
     ynew = np.fft.ifft(isfft)
-    return np.abs(ynew) # im unsure about this if it should be abs or not
+    #ynew = np.abs(ynew)
+    return ynew
 
 def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.001, filt_int_add=0.01):
     """This outpust the new y axis witch is the sdame asthe fft """
@@ -101,11 +103,11 @@ def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.001, filt_int_add=0.01):
     adr = adjs_Rsqr(yax,fitsincuve(xax,yax))
 
     i=0
-    fft = freqfer(xax,yax, selec_filter)
+    fft = ynewfunk(xax,yax, selec_filter)
 
     while adjRsqrd > adr:
         ynew = inv_fft(fft)
-        fft = freqfer(xax,ynew, selec_filter)
+        fft = ynewfunk(xax,ynew, selec_filter)
         adr = adjs_Rsqr(yax,fitsincuve(xax,ynew))
         selec_filter+=filt_int_add
         i+=1
@@ -114,89 +116,24 @@ def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.001, filt_int_add=0.01):
             raise ValueError("Went over 1,000 iterations")
             #print("Data is not evenly spaced or data points are missing")
             #return None
-    return ynew
+    #return ynew, fft, selec_filter
+    return fft
 
-def fftpowerspec():
 
-     isfft = np.fft.fft(sin_fit)
-    mag = np.abs(np.fft.fft(sin_fit))
+def fftpowerspec(fft):
+    n = len(fft)
+    mag = np.abs(np.fft.fft(fft))
     power = np.abs(mag)[:n // 2]
     return power
 
-def inv_fft(isfft):
 
-    newthing = np.fft.ifft(isfft)
-    return np.abs(newthing)
+# i dont think i need this
+def freqfer(ynew,fft, selec_filter=None):
+    """this find the frequencies for the data"""
 
-
-"""
-def fitsincuve(datta):
-
-    xax = stepnumb(datta)[0]
-    yax = stepnumb(datta)[1]
-    #ivsfft main feq
-    #ivsfft freq
-    
-
-    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
-    sin_fit = sinfunk(np.array(xax), a, b, c, d)
-    isfft = np.fft.fft(sin_fit)
-    mag = np.abs(np.fft.fft(sin_fit))
-    n=len(xax)
-    power = np.abs(mag)[:n // 2]
-    return isfft, power
+    threshold = selec_filter * np.max(fft)
+    frequencies = ynew[fft>threshold]
+    #i need to change the units of this to 1/100 m
+    return frequencies
 
 
-"""
-
-
-
-"""
-def fitsincuve(datta):
-   
-    #this onle works when the sin wave is parrellel to the x axis
-    xax = stepnumb(datta)[0]
-    yax = stepnumb(datta)[1]
-    #this is a golden rule while loop
-    #t = 0
-    #error=0
-    #while error > 0.1:
-    # matrix = [[cos(t), sin(t)],[-sin(t),cos(t)]].*[[xax],[yax]]
-    # xnew, ynew = matrix[0], matrix[1]
-    # this has to be a 2x2 nmatrix trans, then i
-    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
-    sin_fit = sinfunk(np.array(xax), a, b, c, d)
-    # error = descreet for minus my fft
-
-    
-    isfft = np.fft.fft(sin_fit)
-    mag = np.abs(np.fft.fft(sin_fit))
-    power = np.abs(mag)[:n // 2]
-    return isfft, power
-"""
-
-
-
-
-"""
-def freqfinder(datta, use_filter='no', selec_filter=None):
-
-    tim = stepnumb(datta)[2]
-
-    n = len(tim)
-
-    freq = np.fft.fftfreq(n, tim/n)
-    magnitude = fitsincuve(datta)[1]
-
-    use_filt = 0
-    filt = 0.0
-    yes_no = use_filter.strip().lower()
-    if yes_no == 'yes':
-        filt = selec_filter
-        use_filt = 1
-        threshold = filt * np.max(magnitude)
-        main_frequencies = freq[magnitude > threshold]
-        return main_frequencies, use_filt
-
-    return freq, use_filt
-"""
