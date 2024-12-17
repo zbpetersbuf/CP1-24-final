@@ -109,7 +109,7 @@ def inv_fft(isfft):
     #ynew = np.abs(ynew)
     return ynew
 
-def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.001, filt_int_add=0.01):
+def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     """This outpust the new y axis witch is the sdame asthe fft """
     xax = stepnumb(datta)[0]
     yax = stepnumb(datta)[1]
