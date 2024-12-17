@@ -13,7 +13,7 @@ import workinh as wrk
 from scipy.optimize import curve_fit
 
 
-def filenamelister(exp_name, filetype='.md'):
+def filenamelister(exp_name):
     """this function finds and returns all markdown files of an experiment type
     ie if you wanted to find all .md files that relate to the total elevator
     movment experiment enter 'eletot' for exp_name"""
@@ -106,7 +106,7 @@ def ynewfunk(xax,yax, selec_filter=None):
 def inv_fft(isfft):
     """ wright the docstring """
     ynew = np.fft.ifft(isfft)
-    #ynew = np.abs(ynew)
+    #ynew = np.abs(yne
     return ynew
 
 def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
@@ -149,5 +149,8 @@ def freqfer(ynew,fft, selec_filter=None):
     frequencies = ynew[fft>threshold]
     #i need to change the units of this to 1/100 m
     return frequencies
+
+
+
 
 
