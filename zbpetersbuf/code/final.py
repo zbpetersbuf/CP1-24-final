@@ -13,7 +13,7 @@ import workinh as wrk
 from scipy.optimize import curve_fit
 
 
-def filenamelister(exp_name):
+def filenamelister(exp_name, filetype = '.md'):
     """this function finds and returns all markdown files of an experiment type
     ie if you wanted to find all .md files that relate to the total elevator
     movment experiment enter 'eletot' for exp_name"""
@@ -46,32 +46,39 @@ def sinfunk(x, a, b, c, d):
     return a * np.sin(b*x + c) + d
 
 
-def fitsincuve(xax,yax):
+
+def fitsincuve(xax, yax, i=0):
+    # Ensure that yax is real if it should be
+    if not len(xax) == len(yax):
+        print(xax, yax, i)
+    yax = np.array(yax)
     a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
     sin_fit = sinfunk(np.array(xax), a, b, c, d)
-    isfft = np.fft.fft(sin_fit)
-    return isfft
 
-
+    return sin_fit
 
 def stepnumb(datta):
     """this just shortens the length of the data to the closest 2^n"""
 
     tim = list(datta.loc[:, 'Time (s)'])
     xax, yax = wrk.gpsloc(datta)
-    compare = [len(tim), len(xax), len(yax)]
+    compare = [len(tim)==len(xax), len(tim)==len(yax), len(xax)==len(yax)]
     alcomp = np.all(compare)
     if not alcomp:
         raise ValueError("Data is not evenly spaced or data points are missing")
-        #print("Data is not evenly spaced or data points are missing")
-        #return None
+
     n = 0
     while len(tim) > 2**n:
         n+=1
-    remv = int((len(tim) - 2**(n-1)) / 2) 
+    twon = 2**(n-1)
+    remv = (len(tim) - twon) // 2 
+    remv1 = remv
+    if abs(remv - (len(tim) - twon) / 2) == 0.5:
+        remv1 = remv + 1 
+ 
+    return xax[remv1:-remv], yax[remv1:-remv], tim[remv1:-remv]
 
-    # i have to modul this to remove and add a half, ie no half. integers, remove one more from begining then end
-    return xax[remv:-remv], yax[remv:-remv], tim[remv:-remv]
+
 
 def f1(file_name,i=0):
     """file_name to datta"""
@@ -79,58 +86,55 @@ def f1(file_name,i=0):
         stepnumb(file_name[i])
     return 
 
-def adjs_Rsqr(yax,y_pred):
+def adjs_Rsqr(yax,ypred):
     """computs the adjusted r^2 value"""
 
-    residuals = yax-y_pred
+    residuals = yax-ypred
     tss = np.sum((yax-np.mean(yax))**2)
     rss = np.sum(residuals**2)
     r2 = 1-(rss/tss)
-    adj_r2 = 1-((1-r2)*(len(yax)-1))/(len(yax)-4-1)
+    adj_r2 = 1-((1-r2)*(len(yax)-1))/(len(yax)-5)
 
     return adj_r2
 
 
-
-def ynewfunk(xax,yax, selec_filter=None):
+def ynewfunk(magnitude, selec_filter):
     """this find the frequencies form the data"""
 
-    n = len(xax)
-    freq = np.fft.fftfreq(n, xax/n)
-    magnitude = fitsincuve(xax,yax)
     threshold = selec_filter * np.max(magnitude)
-    ynew = magnitude[magnitude>threshold]
-
-    return ynew
+    nfft = magnitude[magnitude>threshold]
+    return nfft
 
 def inv_fft(isfft):
     """ wright the docstring """
     ynew = np.fft.ifft(isfft)
-    #ynew = np.abs(yne
-    return ynew
+    return np.abs(ynew)
 
 def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     """This outpust the new y axis witch is the sdame asthe fft """
     datta = pd.read_csv(files)
-    xax = stepnumb(datta)[0]
-    yax = stepnumb(datta)[1]
-    adr = adjs_Rsqr(yax,fitsincuve(xax,yax))
-
+    xax, yax, tim = stepnumb(datta)
     i=0
-    fft = ynewfunk(xax,yax, selec_filter)
+    j=2
+    ynew = fitsincuve(xax,yax,j)
+    adr = adjs_Rsqr(yax,ynew)
+    thing = np.fft.fft(yax)
+
+    fft = ynewfunk(thing, selec_filter)
 
     while adjRsqrd > adr:
-        ynew = inv_fft(fft)
-        fft = ynewfunk(xax,ynew, selec_filter)
-        adr = adjs_Rsqr(yax,fitsincuve(xax,ynew))
+        ynew1 = np.abs(inv_fft(fft))
+        ynewfit = fitsincuve(xax,ynew1,i)
+        fft = ynewfunk(thing, selec_filter)
+        adr = adjs_Rsqr(yax,ynewfit)
         selec_filter+=filt_int_add
         i+=1
 
-        if i>1000:
-            raise ValueError("Went over 1,000 iterations")
-            #print("Data is not evenly spaced or data points are missing")
-            #return None
-    #return ynew, fft, selec_filter
+        if i>100:
+            print(adr, len(ynew1))
+            return ynewfit, yax, xax
+            #raise ValueError("Went over 1,000 iterations")
+
     return fft
 
 
@@ -149,8 +153,4 @@ def freqfer(ynew,fft, selec_filter=None):
     frequencies = ynew[fft>threshold]
     #i need to change the units of this to 1/100 m
     return frequencies
-
-
-
-
 
