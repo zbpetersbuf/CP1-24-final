@@ -8,6 +8,7 @@ import re
 import os
 import glob
 import numpy as np
+import pandas as pd
 import workinh as wrk
 from scipy.optimize import curve_fit
 
@@ -53,9 +54,10 @@ def fitsincuve(xax,yax):
 
 
 
-def stepnumb(datta):
+def stepnumb(files):
     """this just shortens the length of the data to the closest 2^n"""
-    tim = zip(datta.loc[:, 'Time (s)'])
+    datta = pd.read_csv(files)
+    tim = list(datta.loc[:, 'Time (s)'])
     xax, yax = wrk.gpsloc(datta)
     compare = [len(tim), len(xax), len(yax)]
     alcomp = np.all(compare)
@@ -66,7 +68,8 @@ def stepnumb(datta):
     n = 0
     while len(tim) > 2**n:
         n+=1
-    remv=(len(tim)-(2**(n-1)))/2
+    remv = int((len(tim) - 2**(n-1)) / 2) 
+
     # i have to modul this to remove and add a half, ie no half. integers, remove one more from begining then end
     return xax[remv:-remv], yax[remv:-remv], tim[remv:-remv]
 
@@ -101,7 +104,7 @@ def ynewfunk(xax,yax, selec_filter=None):
     return ynew
 
 def inv_fft(isfft):
-
+    """ wright the docstring """
     ynew = np.fft.ifft(isfft)
     #ynew = np.abs(ynew)
     return ynew
