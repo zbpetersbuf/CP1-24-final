@@ -52,10 +52,19 @@ def fitsincuve(xax, yax, i=0):
     if not len(xax) == len(yax):
         print(xax, yax, i)
     yax = np.array(yax)
-    a, b, c, d = curve_fit(sinfunk, xax, yax)[0]
+    guess_a = np.max(yax) - np.min(yax)
+    guess_b = 4*np.pi/(np.max(xax) - np.min(xax))
+    guess_c = 0
+    guess_d = 0
+    p0 = [guess_a, guess_b, guess_c, guess_d]
+
+    a, b, c, d = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
     sin_fit = sinfunk(np.array(xax), a, b, c, d)
 
     return sin_fit
+
+
+
 
 def stepnumb(datta):
     """this just shortens the length of the data to the closest 2^n"""
@@ -75,8 +84,12 @@ def stepnumb(datta):
     remv1 = remv
     if abs(remv - (len(tim) - twon) / 2) == 0.5:
         remv1 = remv + 1 
- 
-    return xax[remv1:-remv], yax[remv1:-remv], tim[remv1:-remv]
+
+    xax = xax[remv1:-remv]
+    yax = yax[remv1:-remv]
+    tim = tim[remv1:-remv]
+
+    return xax-np.min(xax), yax-yax[0], tim
 
 
 
@@ -105,10 +118,11 @@ def ynewfunk(magnitude, selec_filter):
     nfft = magnitude[magnitude>threshold]
     return nfft
 
+
 def inv_fft(isfft):
     """ wright the docstring """
     ynew = np.fft.ifft(isfft)
-    return np.abs(ynew)
+    return ynew
 
 def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     """This outpust the new y axis witch is the sdame asthe fft """
@@ -120,11 +134,16 @@ def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     adr = adjs_Rsqr(yax,ynew)
     thing = np.fft.fft(yax)
 
+    #a = (np.max(yax) + np.min(yax))/2
+
     fft = ynewfunk(thing, selec_filter)
 
     while adjRsqrd > adr:
-        ynew1 = np.abs(inv_fft(fft))
-        ynewfit = fitsincuve(xax,ynew1,i)
+        rry =  np.zeros(len(tim))
+        ynew1 =  np.abs(inv_fft(fft))
+        rry[:len(ynew1)] = ynew1
+
+        ynewfit = fitsincuve(xax,rry,i)
         fft = ynewfunk(thing, selec_filter)
         adr = adjs_Rsqr(yax,ynewfit)
         selec_filter+=filt_int_add
@@ -134,8 +153,8 @@ def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
             print(adr, len(ynew1))
             return ynewfit, yax, xax
             #raise ValueError("Went over 1,000 iterations")
-
-    return fft
+    print(adr, len(ynew1))
+    return ynewfit, yax, xax
 
 
 def fftpowerspec(fft):
