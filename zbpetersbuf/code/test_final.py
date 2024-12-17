@@ -54,6 +54,7 @@ def test_adjs_Rsqr():
 
 def test_goldrule_sig():
     a = fin.goldrule_sig(crtd_data())
+    thisthing= crtd_data()[2]
     assert len(a)== len(thisthing[1:])
     assert fin.goldrule_sig(crtd_data(), 2) == "Went over 1,000 iterations"
 

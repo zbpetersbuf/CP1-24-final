@@ -12,14 +12,15 @@ import workinh as wrk
 from scipy.optimize import curve_fit
 
 
-def filenamelister(exp_name):
+def filenamelister(exp_name, filetype='.md'):
     """this function finds and returns all markdown files of an experiment type
     ie if you wanted to find all .md files that relate to the total elevator
     movment experiment enter 'eletot' for exp_name"""
 
-    pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', f"*{exp_name.strip()}*.md")
+    pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', f"*{exp_name.strip()}*{filetype.strip()}")
     md_files = glob.glob(pattern)
     return md_files
+
 
 def find_fah(file_name):
     """this function finds the temp recorded for the file you enter in file_name
