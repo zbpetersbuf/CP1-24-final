@@ -54,9 +54,9 @@ def fitsincuve(xax,yax):
 
 
 
-def stepnumb(files):
+def stepnumb(datta):
     """this just shortens the length of the data to the closest 2^n"""
-    datta = pd.read_csv(files)
+
     tim = list(datta.loc[:, 'Time (s)'])
     xax, yax = wrk.gpsloc(datta)
     compare = [len(tim), len(xax), len(yax)]
@@ -109,8 +109,9 @@ def inv_fft(isfft):
     #ynew = np.abs(ynew)
     return ynew
 
-def goldrule_sig(datta, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
+def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     """This outpust the new y axis witch is the sdame asthe fft """
+    datta = pd.read_csv(files)
     xax = stepnumb(datta)[0]
     yax = stepnumb(datta)[1]
     adr = adjs_Rsqr(yax,fitsincuve(xax,yax))
