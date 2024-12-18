@@ -41,9 +41,9 @@ def fah_to_kel(f):
         return None
     return (5*(f-32))/9 + 273.15
 
-def sinfunk(x, a, b, c, d):
+def sinfunk(x, a, b, c, d, e):
     """this is just the fit function for the fit stuff"""
-    return a * np.sin(b*x + c) + d
+    return a * np.sin(b*x + c) + d*x + e
 
 
 
@@ -56,10 +56,10 @@ def fitsincuve(xax, yax, i=0):
     guess_b = 3*np.pi/(np.max(xax) - np.min(xax))
     guess_c = xax[0]
     guess_d = np.mean(yax)
-    p0 = [guess_a, guess_b, guess_c, guess_d]
+    p0 = [guess_a, guess_b, guess_c, 1, guess_d]
 
-    a, b, c, d = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
-    sin_fit = sinfunk(np.array(xax), a, b, c, d)
+    a, b, c, d, e = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d, e)
 
     return sin_fit
 
@@ -132,30 +132,37 @@ def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     i=0
     j=2
     ynew = fitsincuve(xax,yax,j)
-    adr = adjs_Rsqr(yax,ynew)
+    adr1 = adjs_Rsqr(yax,ynew)
     thing = np.fft.fft(yax)
 
     a = (np.max(yax) + np.min(yax))/2
 
     fft = ynewfunk(thing, selec_filter)
+    print(adr1)
+    return yax, ynew, xax
+    #while adjRsqrd > adr:
+    """
+    adr2 = 100
+    while np.abs(adr2-adr1) > 0:
+        adr2 = adr1
 
-    while adjRsqrd > adr:
         rry =  np.zeros(len(tim))
         ynew1 =  np.abs(inv_fft(fft))
         rry[:len(ynew1)] = ynew1
 
         ynewfit = fitsincuve(xax,rry,i)
         fft = ynewfunk(thing, selec_filter)
-        adr = adjs_Rsqr(rry,ynewfit)
+        adr1 = adjs_Rsqr(rry,ynewfit)
         selec_filter+=filt_int_add
         i+=1
 
-        if i>100:
-            print(adr, len(ynew1))
+        if i>1:
+            print(adr1)
             return yax, ynewfit, rry, xax
             #raise ValueError("Went over 1,000 iterations")
-    print(adr, len(ynew1))
-    return yax, ynewfit, rry, xax
+
+    print(adr1,i)
+    return yax, ynewfit, rry, xax"""
 
 
 def fftpowerspec(fft):
