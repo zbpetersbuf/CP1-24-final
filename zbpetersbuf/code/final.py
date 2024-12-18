@@ -53,9 +53,9 @@ def fitsincuve(xax, yax, i=0):
         print(xax, yax, i)
     yax = np.array(yax)
     guess_a = np.max(yax) - np.min(yax)
-    guess_b = 4*np.pi/(np.max(xax) - np.min(xax))
-    guess_c = 0
-    guess_d = 0
+    guess_b = 3*np.pi/(np.max(xax) - np.min(xax))
+    guess_c = xax[0]
+    guess_d = np.mean(yax)
     p0 = [guess_a, guess_b, guess_c, guess_d]
 
     a, b, c, d = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
@@ -88,8 +88,9 @@ def stepnumb(datta):
     xax = xax[remv1:-remv]
     yax = yax[remv1:-remv]
     tim = tim[remv1:-remv]
-
-    return xax-np.min(xax), yax-yax[0], tim
+    xminus = np.min([xax[0],xax[len(tim)-1]])
+    #yminus = np.min([yax[0],yax[len(tim)-1]])
+    return xax-xminus, yax-yax[0], tim
 
 
 
@@ -134,7 +135,7 @@ def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
     adr = adjs_Rsqr(yax,ynew)
     thing = np.fft.fft(yax)
 
-    #a = (np.max(yax) + np.min(yax))/2
+    a = (np.max(yax) + np.min(yax))/2
 
     fft = ynewfunk(thing, selec_filter)
 
@@ -145,16 +146,16 @@ def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
 
         ynewfit = fitsincuve(xax,rry,i)
         fft = ynewfunk(thing, selec_filter)
-        adr = adjs_Rsqr(yax,ynewfit)
+        adr = adjs_Rsqr(rry,ynewfit)
         selec_filter+=filt_int_add
         i+=1
 
         if i>100:
             print(adr, len(ynew1))
-            return ynewfit, yax, xax
+            return yax, ynewfit, rry, xax
             #raise ValueError("Went over 1,000 iterations")
     print(adr, len(ynew1))
-    return ynewfit, yax, xax
+    return yax, ynewfit, rry, xax
 
 
 def fftpowerspec(fft):
