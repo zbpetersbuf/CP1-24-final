@@ -93,3 +93,51 @@ def anze_revm_trnd(signal, tim, use_filter, selec_filter):
 
 
 
+
+
+def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
+    """This outpust the new y axis witch is the sdame asthe fft """
+    datta = pd.read_csv(files)
+    xax, yax, tim = stepnumb(datta)
+
+    ynew = fitsincuve(xax,yax)
+    adr1 = adjs_Rsqr(yax,ynew)
+    thing = np.fft.fft(yax)
+
+    #a = (np.max(yax) + np.min(yax))/2
+
+    #fft = ynewfunk(thing, selec_filter)
+
+    return yax, ynew, xax, adr1
+    #while adjRsqrd > adr:
+    """
+    adr2 = 100
+    while np.abs(adr2-adr1) > 0:
+        adr2 = adr1
+
+        rry =  np.zeros(len(tim))
+        ynew1 =  np.abs(inv_fft(fft))
+        rry[:len(ynew1)] = ynew1
+
+        ynewfit = fitsincuve(xax,rry,i)
+        fft = ynewfunk(thing, selec_filter)
+        adr1 = adjs_Rsqr(rry,ynewfit)
+        selec_filter+=filt_int_add
+        i+=1
+
+        if i>1:
+            print(adr1)
+            return yax, ynewfit, rry, xax
+            #raise ValueError("Went over 1,000 iterations")
+
+    print(adr1,i)
+    return yax, ynewfit, rry, xax"""
+
+
+
+def ynewfunk(magnitude, selec_filter):
+    """this find the frequencies form the data"""
+
+    threshold = selec_filter * np.max(magnitude)
+    nfft = magnitude[magnitude>threshold]
+    return nfft

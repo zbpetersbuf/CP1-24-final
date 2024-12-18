@@ -12,16 +12,13 @@ import pandas as pd
 import workinh as wrk
 from scipy.optimize import curve_fit
 
+def fah_to_kel(f):
+    """Converts from Fahrenheit to Kelvin enter the recorded temp as f"""
 
-def filenamelister(exp_name, filetype = '.md'):
-    """this function finds and returns all markdown files of an experiment type
-    ie if you wanted to find all .md files that relate to the total elevator
-    movment experiment enter 'eletot' for exp_name"""
-
-    pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', f"*{exp_name.strip()}*{filetype.strip()}")
-    md_files = glob.glob(pattern)
-    return md_files
-
+    if f < -459.66:
+        print("The value for Fahrenheit should not be possible try again")
+        return None
+    return (5*(f-32))/9 + 273.15
 
 def find_fah(file_name):
     """this function finds the temp recorded for the file you enter in file_name
@@ -33,18 +30,31 @@ def find_fah(file_name):
         numbs = re.findall(r'\d+', f.read())
     return int(numbs[0])
 
-def fah_to_kel(f):
-    """Converts from Fahrenheit to Kelvin enter the recorded temp as f"""
 
-    if f < -459.66:
-        print("The value for Fahrenheit should not be possible try again")
-        return None
-    return (5*(f-32))/9 + 273.15
+def filenamelister(exp_name, filetype = '.md'):
+    """this function finds and returns all markdown files of an experiment type
+    ie if you wanted to find all .md files that relate to the total elevator
+    movment experiment enter 'eletot' for exp_name"""
 
-def sinfunk(x, a, b, c, d, e):
+    pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/data/', f"*{exp_name.strip()}*{filetype.strip()}")
+    files = glob.glob(pattern)
+
+    return files
+
+
+def findmdfromcsv(filepath,i):
+    match = re.search(r'LL\d+_(.*)\.csv', filepath)
+    file_name = match.group(1)
+    return f"{i}{file_name}.md"
+
+def findmdfromcsv2(filepath):
+    match = re.search(r'LL\d+_(.*)\.csv', filepath)
+    file_name = match.group(1)
+    return f"_{file_name}"
+
+def sinfunk(x, a, b, c, d):
     """this is just the fit function for the fit stuff"""
-    return a * np.sin(b*x + c) + d*x + e
-
+    return a * np.sin(b*x - b*c) + d*x
 
 
 def fitsincuve(xax, yax, i=0):
@@ -52,17 +62,17 @@ def fitsincuve(xax, yax, i=0):
     if not len(xax) == len(yax):
         print(xax, yax, i)
     yax = np.array(yax)
-    guess_a = np.max(yax) - np.min(yax)
-    guess_b = 3*np.pi/(np.max(xax) - np.min(xax))
-    guess_c = xax[0]
-    guess_d = np.mean(yax)
-    p0 = [guess_a, guess_b, guess_c, 1, guess_d]
 
-    a, b, c, d, e = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
-    sin_fit = sinfunk(np.array(xax), a, b, c, d, e)
+    guess_a = (np.abs(np.max(yax) - np.min(yax)))
+    guess_b = 4 * np.pi/(xax[-1] - xax[0])
+    guess_c = 1
+    guess_d = (xax[0]-xax[len(xax)-1])/((yax[0]-yax[len(xax)-1]))*(sum(yax)/sum(xax))
+    p0 = [guess_a, guess_b, guess_c, guess_d]
+
+    a, b, c, d = curve_fit(sinfunk, xax, yax, p0=p0, maxfev=50000)[0]
+    sin_fit = sinfunk(np.array(xax), a, b, c, d)
 
     return sin_fit
-
 
 
 
@@ -74,8 +84,8 @@ def stepnumb(datta):
     compare = [len(tim)==len(xax), len(tim)==len(yax), len(xax)==len(yax)]
     alcomp = np.all(compare)
     if not alcomp:
-        raise ValueError("Data is not evenly spaced or data points are missing")
-
+        print("Data is not evenly spaced or data points are missing")
+        return None
     n = 0
     while len(tim) > 2**n:
         n+=1
@@ -84,21 +94,18 @@ def stepnumb(datta):
     remv1 = remv
     if abs(remv - (len(tim) - twon) / 2) == 0.5:
         remv1 = remv + 1 
-
+    
     xax = xax[remv1:-remv]
     yax = yax[remv1:-remv]
     tim = tim[remv1:-remv]
-    xminus = np.min([xax[0],xax[len(tim)-1]])
-    #yminus = np.min([yax[0],yax[len(tim)-1]])
-    return xax-xminus, yax-yax[0], tim
 
+    #return xax-xax[0], yax-yax[0], tim
+    mintim = np.min([tim[0],tim[len(tim)-1]])
+    if mintim == tim[0]:
+        return xax-xax[0], yax-yax[0], tim
+    else:
+        return xax-xax[len(tim)-1], yax-yax[len(tim)-1], tim
 
-
-def f1(file_name,i=0):
-    """file_name to datta"""
-    while i<20:
-        stepnumb(file_name[i])
-    return 
 
 def adjs_Rsqr(yax,ypred):
     """computs the adjusted r^2 value"""
@@ -112,72 +119,60 @@ def adjs_Rsqr(yax,ypred):
     return adj_r2
 
 
-def ynewfunk(magnitude, selec_filter):
-    """this find the frequencies form the data"""
-
-    threshold = selec_filter * np.max(magnitude)
-    nfft = magnitude[magnitude>threshold]
-    return nfft
-
-
-def inv_fft(isfft):
-    """ wright the docstring """
-    ynew = np.fft.ifft(isfft)
-    return ynew
-
-def goldrule_sig(files, adjRsqrd=0.8, selec_filter=0.1, filt_int_add=0.1):
-    """This outpust the new y axis witch is the sdame asthe fft """
-    datta = pd.read_csv(files)
+def funfit(file):
+    datta = pd.read_csv(file)
     xax, yax, tim = stepnumb(datta)
-    i=0
-    j=2
-    ynew = fitsincuve(xax,yax,j)
-    adr1 = adjs_Rsqr(yax,ynew)
-    thing = np.fft.fft(yax)
 
-    a = (np.max(yax) + np.min(yax))/2
+    ynew = fitsincuve(xax,yax)
+    adr = adjs_Rsqr(yax,ynew)
 
-    fft = ynewfunk(thing, selec_filter)
-    print(adr1)
-    return yax, ynew, xax
-    #while adjRsqrd > adr:
-    """
-    adr2 = 100
-    while np.abs(adr2-adr1) > 0:
-        adr2 = adr1
-
-        rry =  np.zeros(len(tim))
-        ynew1 =  np.abs(inv_fft(fft))
-        rry[:len(ynew1)] = ynew1
-
-        ynewfit = fitsincuve(xax,rry,i)
-        fft = ynewfunk(thing, selec_filter)
-        adr1 = adjs_Rsqr(rry,ynewfit)
-        selec_filter+=filt_int_add
-        i+=1
-
-        if i>1:
-            print(adr1)
-            return yax, ynewfit, rry, xax
-            #raise ValueError("Went over 1,000 iterations")
-
-    print(adr1,i)
-    return yax, ynewfit, rry, xax"""
+    return yax, ynew, xax, adr, tim
 
 
-def fftpowerspec(fft):
-    n = len(fft)
-    mag = np.abs(np.fft.fft(fft))
-    power = np.abs(mag)[:n // 2]
-    return power
+def fftfinding(ynew, adr, tim, mag='False'):
+    n = len(tim)
+    for i in range(n-1):
+        timestamp_sum = sum(tim.index[i+1].timestamp() - tim.index[i].timestamp())
+    compare = np.isclose(timestamp_sum/(n-1), tim.index[2].timestamp() - tim.index[1].timestamp(), atol=1e-5)
+    if compare:
+        if adr > 0.2:
+            if mag == 'True':
+                matrx = np.fft.fft(ynew.values)
+                return np.abs(matrx)[:n // 2]
+            return np.fft.fft(ynew)
+    return None
+
+def inv_fft(isfft, real='False'):
+    """ wright the docstring """
+    if real:
+        return np.abs(np.fft.ifft(isfft))
+    else:
+        return np.fft.ifft(isfft)
+
+def freqfinder(ynew, xax):
+    n = len(ynew)
+    d = sum(xax[i+1] - xax[i] for i in range(n-1)) / (n - 1)
+    freqs = []
+    for k in range(n):
+        f = k / (n * d)*100
+        freqs.append(f)
+
+    return freqs
 
 
-# i dont think i need this
-def freqfer(ynew,fft, selec_filter=None):
-    """this find the frequencies for the data"""
 
-    threshold = selec_filter * np.max(fft)
-    frequencies = ynew[fft>threshold]
-    #i need to change the units of this to 1/100 m
-    return frequencies
-
+def calc_freq(data, tim):
+    """this takes in the same data as the fft equations only gives the frequencies
+    of the data, this gives out the frequencies in Hz, if you want to change it to
+    days say day in the second imput, or if you want it in months say month (ie 365.25/12 days) """
+    n = len(data)
+    timestamp_sum = sum(data.index[i+1].timestamp() - data.index[i].timestamp() for i in range(n-1))
+    diftim = data.index[2].timestamp() - data.index[1].timestamp()
+    if not timestamp_sum/(n-1) == diftim:
+        print("Data is not evenly spaced or data points are missing")
+        return None
+    if tim.strip().lower() == 'day':
+        diftim = diftim/(60*60*24)
+    if tim.strip().lower() == 'month':
+        diftim = diftim/(60*60*24*30.4375)
+    return np.fft.fftfreq(n, d = diftim)
