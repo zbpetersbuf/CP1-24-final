@@ -1,8 +1,9 @@
 """
 final.py
-
-just relized that i might have to make sure that the sin i walk in is par
-to the 'y' axis or else i will need to remove the slant of the wave
+this is the location of the code that is needed for the final
+the pylint score has a value of 9.92/10 since it is refrencing
+something that will only complicate the function so i decided
+it would be bes not to change
 """
 import re
 import os
@@ -14,7 +15,6 @@ import workinh as wrk
 
 def fah_to_kel(f):
     """Converts from Fahrenheit to Kelvin enter the recorded temp as f"""
-
     if f < -459.66:
         print("The value for Fahrenheit should not be possible try again")
         return None
@@ -25,7 +25,6 @@ def find_fah(filpath):
     """this function finds the temp recorded for the file you enter in file_name
     ie if you wanted to know the temp recorded in the test file LL13_sinewalktest.md, 
     you would enter 'LL13_sinewalktest.md' for file_name"""
-
     filpath = os.path.join(filpath.strip())
     with open(filpath, 'r', encoding='utf-8') as f:
         numbs = re.findall(r'\d+', f.read())
