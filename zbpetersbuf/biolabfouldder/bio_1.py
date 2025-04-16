@@ -100,22 +100,19 @@ def fcs():
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    # Calculate the average of the y-values
-    avg_y = y.mean()
-
-    # Subtract the average from each y-value (center the data)
-    y_adjusted = y / avg_y
+    #avg_y = y.mean()
+    #y_adjusted = y / avg_y
 
     # Use numpy.correlate to calculate the auto-correlation
-    correlation = np.correlate(y_adjusted, y_adjusted, mode='full')
+    correlation = np.correlate(y, y, mode='full')
 
     # Create a time axis for the correlation plot (lag values)
-    lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
+    lag = np.arange(-len(y) + 1, len(y))
 
-    avg_y = y_adjusted.mean()
+    adv_correlation = correlation.mean()
 
     # Subtract the average from each y-value (center the data)
-    y_adjusted = y_adjusted / avg_y
+    correlation = correlation / adv_correlation
 
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
