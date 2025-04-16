@@ -44,13 +44,12 @@ def fit_gaussian(x_data, y_data):
 
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
-    results = {}
-    tot_mean = 0
-    avg_std_dev = 0
+    tot_mean = 0  # Initialize total mean
+    tot_std_dev = 0  # Initialize total standard deviation
+    num_files = 0  # Initialize a counter for the number of files processed
 
     for file in files:
         try:
-
             data = pd.read_csv(file, header=0)  # Assuming your CSVs have a header row
             
             if data.empty:
@@ -62,12 +61,20 @@ def process_multiple_files(exp_name):
 
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
-            #file_key = findmdfromcsv(file)
+            # Sum up the mean and standard deviation
             tot_mean += mean
             tot_std_dev += std_dev
-            num_files += 1
+            num_files += 1  # Increment the file counter
+
+        except Exception as e:
+            print(f"Error processing file {file}: {e}")
+
+    # Avoid division by zero in case no files were processed
     if num_files > 0:
         avg_mean = tot_mean / num_files
         avg_std_dev = tot_std_dev / num_files
         print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
         return avg_mean, avg_std_dev  # Return the averages
+    else:
+        print("No valid files processed.")
+        return None, None  # Return None if no files were processed
