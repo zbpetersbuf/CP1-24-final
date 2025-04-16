@@ -101,7 +101,7 @@ def fcs():
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
     # Calculate the average of the y-values
-    avg_y = 1
+    avg_y = y.mean()
 
     # Subtract the average from each y-value (center the data)
     y_adjusted = y / avg_y
