@@ -61,13 +61,11 @@ def process_multiple_files(exp_name):
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
             #file_key = findmdfromcsv(file)
-            #results[file_key] = {'mean': mean, 'std_dev': std_dev}
-            #results[file_key] = {mean, std_dev}
             tot_mean += mean
             tot_std_dev += std_dev
-        except Exception as e:
-            print(f"Error processing file {file}: {e}")
-    #results[file_key] = {'mean': tot_mean/20, 'std_dev': tot_std_dev/20}
-    #print(f"Mean: {tot_mean / 20}, Std Dev: {tot_std_dev / 20}")
-
-    return 6
+            num_files += 1
+    if num_files > 0:
+        avg_mean = tot_mean / num_files
+        avg_std_dev = tot_std_dev / num_files
+        print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
+        return avg_mean, avg_std_dev  # Return the averages
