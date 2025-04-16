@@ -110,17 +110,9 @@ def fcs():
     # Create a time axis for the correlation plot (lag values)
     lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
 
-    # Only keep non-negative lags and corresponding correlations
-    positive_lags = lag[lag >= 0]
-    positive_correlation = correlation[len(correlation)//2:][lag >= 0]
-
-    # Check if the sizes match
-    if len(positive_lags) != len(positive_correlation):
-        print("Error: The lengths of positive_lags and positive_correlation don't match.")
-
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
-    plt.plot(positive_lags, positive_correlation, label='Auto-correlation', color='b')
+    plt.plot(lag, correlation, label='Auto-correlation', color='b')
     plt.title('Auto-correlation of Count Rate vs Time')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
