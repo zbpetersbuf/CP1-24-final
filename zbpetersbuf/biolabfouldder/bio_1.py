@@ -101,7 +101,7 @@ def fcs():
     avg_y = y.mean()
 
     # Subtract the average from each y-value
-    y_adjusted = y
+    y_adjusted = y/avg_y
 
     # Plot the data
     plt.figure(figsize=(10, 6))
