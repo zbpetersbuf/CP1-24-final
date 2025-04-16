@@ -60,18 +60,22 @@ def process_multiple_files(exp_name):
 
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
-            # Sum up the mean and standard deviation
-            tot_mean += mean
-            tot_std_dev += std_dev
+            if not np.isnan(mean) and not np.isnan(std_dev):
+                tot_mean += mean
+                tot_std_dev += std_dev
+            else:
+                print(f"Warning: Gaussian fitting failed for file {file}")
 
         except Exception as e:
             print(f"Error processing file {file}: {e}")
 
     # Calculate averages after all files are processed
-    avg_mean = tot_mean / 20
-    avg_std_dev = tot_std_dev / 20
+    if len(files) > 0:
+        avg_mean = tot_mean / len(files)
+        avg_std_dev = tot_std_dev / len(files)
+        print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
+    else:
+        print("No valid files processed.")
 
-    # Print the averages
-    print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
 
 
