@@ -45,6 +45,8 @@ def fit_gaussian(x_data, y_data):
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
+    tot_mean = 0
+    avg_std_dev = 0
 
     for file in files:
         try:
