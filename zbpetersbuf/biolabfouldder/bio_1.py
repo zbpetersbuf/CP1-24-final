@@ -32,6 +32,7 @@ def findmdfromcsv(filepath):
 def gaussian(x, a, b, c, e):
     return a * np.exp(-(x - b)**2 / (2 * c**2)) + e
 
+
 def fit_gaussian(x_data, y_data):
     initial_guess = [max(y_data), np.mean(x_data), np.std(x_data), np.min(y_data)]  # Initial guesses for [a, b, c, e]
     popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)  # Fit the Gaussian model
@@ -44,12 +45,19 @@ def process_multiple_files(exp_name):
     results = {}
     
     for file in files:
-        # Read CSV file using genfromtxt, skipping the header row
-        data = np.genfromtxt(file, delimiter=',', skip_header=1)  # Skip the header row
+        # Open the file and manually skip the header
+        with open(file, 'r') as f:
+            # Skip the header row (line 0)
+            next(f)
+            
+            # Read the rest of the data
+            data = np.loadtxt(f, delimiter=',')
+        
         if data.size == 0:
             print(f"Warning: File {file} has no data to process!")
             continue
         
+        # Extract the x and y data (Distance and Gray Value columns)
         x_data = data[:, 0]  # First column: Distance_(microns)
         y_data = data[:, 1]  # Second column: Gray_Value
         
