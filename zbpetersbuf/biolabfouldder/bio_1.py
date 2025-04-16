@@ -42,6 +42,7 @@ def fit_gaussian(x_data, y_data):
         print(f"Warning: Gaussian fitting failed: {e}")
         return np.nan, np.nan  # Return NaN if fitting fails
 
+
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     means = []  # List to store the means
@@ -70,12 +71,15 @@ def process_multiple_files(exp_name):
         except Exception as e:
             print(f"Error processing file {file}: {e}")
 
-    # Print the lists of means and standard deviations
-    print("Means from each file:")
-    print(means)
-    print("Standard Deviations from each file:")
-    print(std_devs)
+    # Calculate the averages of the means and standard deviations
+    if means and std_devs:
+        avg_mean = np.mean(means)
+        avg_std_dev = np.mean(std_devs)
 
-
-
-
+        # Print the results
+        print(f"Means from each file: {means}")
+        print(f"Standard Deviations from each file: {std_devs}")
+        print(f"Average Mean: {avg_mean}")
+        print(f"Average Std Dev: {avg_std_dev}")
+    else:
+        print("No valid data to calculate averages.")
