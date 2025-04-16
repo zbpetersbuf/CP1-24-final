@@ -90,7 +90,7 @@ def fcs():
     file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
 
     # Read the Excel file, skipping the first two rows
-    df = pd.read_excel(file_path, skiprows=2)
+    df = pd.read_excel(file_path, skiprows=1)
 
     # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
     # You can adjust these column names based on your actual file structure
