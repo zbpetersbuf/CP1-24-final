@@ -38,8 +38,6 @@ def fit_gaussian(x_data, y_data):
     popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)  # Fit the Gaussian model
     a_fit, b_fit, c_fit, e_fit = popt  # Optimized parameters
     return b_fit, c_fit  # Return mean (b) and standard deviation (c)
-
-# Process the data from multiple files
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
@@ -51,11 +49,11 @@ def process_multiple_files(exp_name):
             next(f)
             
             # Read the rest of the data
-            data = np.loadtxt(f, delimiter=',')
-        
-        if data.size == 0:
-            print(f"Warning: File {file} has no data to process!")
-            continue
+            data = np.genfromtxt(f, delimiter=',')  # Ensure no string data is being read
+            # Check if data is empty
+            if data.size == 0:
+                print(f"Warning: File {file} has no data to process!")
+                continue
         
         # Extract the x and y data (Distance and Gray Value columns)
         x_data = data[:, 0]  # First column: Distance_(microns)
