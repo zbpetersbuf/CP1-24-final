@@ -45,22 +45,23 @@ def fit_gaussian(x_data, y_data):
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
-    
+
     for file in files:
         try:
-            data = np.genfromtxt(file, delimiter=',', skip_header=1)  # Ensure no string data is being read
-            # Check if data is empty
-            if data.size == 0:
+            # Use pandas to read the CSV
+            data = pd.read_csv(file, header=0)  # Assuming your CSVs have a header row
+            
+            if data.empty:
                 print(f"Warning: File {file} has no data to process!")
                 continue
-        
-            # Extract the x and y data (Distance and Gray Value columns)
-            distance_data = data[:, 0]  # First column: Distance_(microns)
-            gray_value_data = data[:, 1]  # Second column: Gray_Value
-        
+
+            # Extract the x and y data (adjust column names as necessary)
+            distance_data = data.iloc[:, 0].values  # First column: Distance_(microns)
+            gray_value_data = data.iloc[:, 1].values  # Second column: Gray_Value
+
             # Fit the Gaussian and get the mean and std deviation
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
-        
+
             # Store the results with the file name key
             file_key = findmdfromcsv(file)
             results[file_key] = {'mean': mean, 'std_dev': std_dev}
