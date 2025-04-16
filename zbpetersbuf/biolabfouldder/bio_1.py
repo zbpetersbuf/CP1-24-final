@@ -5,7 +5,7 @@ import re
 import os
 import glob
 import numpy as np
-#import pandas as pd
+import pandas as pd
 from scipy.optimize import curve_fit
 #import workinh as wrk
 
@@ -38,13 +38,14 @@ def fit_gaussian(x_data, y_data):
     a_fit, b_fit, c_fit, e_fit = popt  # Optimized parameters
     return b_fit, c_fit  # Return mean (b) and standard deviation (c)
 
+# Process the data from multiple files
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
     
     for file in files:
-        # Load the data from the CSV file and skip the header (skiprows=1)
-        data = np.loadtxt(file, delimiter=',', skiprows=1)  # Skip the header
+        # Read CSV file using genfromtxt, skipping the header row
+        data = np.genfromtxt(file, delimiter=',', skip_header=1)  # Skip the header row
         x_data = data[:, 0]  # First column: Distance_(microns)
         y_data = data[:, 1]  # Second column: Gray_Value
         
