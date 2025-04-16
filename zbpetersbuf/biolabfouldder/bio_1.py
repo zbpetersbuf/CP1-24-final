@@ -38,7 +38,6 @@ def fit_gaussian(x_data, y_data):
     a_fit, b_fit, c_fit, e_fit = popt  # Optimized parameters
     return b_fit, c_fit  # Return mean (b) and standard deviation (c)
 
-# Process the data from multiple files
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
