@@ -93,22 +93,28 @@ def fcs():
     df = pd.read_excel(file_path, skiprows=1)
 
     # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
-    # You can adjust these column names based on your actual file structure
+    # Adjust based on your actual data structure
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
     # Calculate the average of the y-values
     avg_y = y.mean()
 
-    # Subtract the average from each y-value
-    y_adjusted = y/avg_y
+    # Subtract the average from each y-value (center the data)
+    y_adjusted = y - avg_y
 
-    # Plot the data
+    # Use numpy.correlate to calculate the auto-correlation
+    correlation = np.correlate(y_adjusted, y_adjusted, mode='full')
+
+    # Create a time axis for the correlation plot (lag values)
+    lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
+
+    # Plot the correlation
     plt.figure(figsize=(10, 6))
-    plt.plot(x, y_adjusted, label='Adjusted Count Rate', color='b')
-    plt.title('Time vs Adjusted Count Rate')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Adjusted Count Rate (kCounts/s)')
+    plt.plot(lag, correlation, label='Auto-correlation', color='b')
+    plt.title('Auto-correlation of Count Rate vs Time')
+    plt.xlabel('Lag')
+    plt.ylabel('Correlation')
     plt.legend()
     plt.grid(True)
     plt.show()
