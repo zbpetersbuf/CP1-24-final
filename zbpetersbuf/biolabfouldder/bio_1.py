@@ -48,23 +48,21 @@ def process_multiple_files(exp_name):
 
     for file in files:
         try:
-            # Use pandas to read the CSV
+
             data = pd.read_csv(file, header=0)  # Assuming your CSVs have a header row
             
             if data.empty:
                 print(f"Warning: File {file} has no data to process!")
                 continue
 
-            # Extract the x and y data (adjust column names as necessary)
             distance_data = data.iloc[:, 0].values  # First column: Distance_(microns)
             gray_value_data = data.iloc[:, 1].values  # Second column: Gray_Value
 
-            # Fit the Gaussian and get the mean and std deviation
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
-            # Store the results with the file name key
             file_key = findmdfromcsv(file)
-            results[file_key] = {'mean': mean, 'std_dev': std_dev}
+            #results[file_key] = {'mean': mean, 'std_dev': std_dev}
+            results[file_key] = {mean, std_dev}
         except Exception as e:
             print(f"Error processing file {file}: {e}")
     
