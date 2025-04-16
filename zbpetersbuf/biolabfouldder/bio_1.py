@@ -60,7 +60,7 @@ def process_multiple_files(exp_name):
 
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
-            file_key = findmdfromcsv(file)
+            #file_key = findmdfromcsv(file)
             #results[file_key] = {'mean': mean, 'std_dev': std_dev}
             #results[file_key] = {mean, std_dev}
             tot_mean +=mean
