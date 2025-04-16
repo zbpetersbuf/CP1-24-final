@@ -62,8 +62,10 @@ def process_multiple_files(exp_name):
 
             file_key = findmdfromcsv(file)
             #results[file_key] = {'mean': mean, 'std_dev': std_dev}
-            results[file_key] = {mean, std_dev}
+            #results[file_key] = {mean, std_dev}
+            tot_mean +=mean
+            tot_std_dev += std_dev
         except Exception as e:
             print(f"Error processing file {file}: {e}")
-    
+    results[file_key] = {'mean': tot_mean/20, 'std_dev': tot_std_dev/20}
     return results
