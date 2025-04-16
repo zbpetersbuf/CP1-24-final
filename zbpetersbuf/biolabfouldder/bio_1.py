@@ -68,4 +68,5 @@ def process_multiple_files(exp_name):
         except Exception as e:
             print(f"Error processing file {file}: {e}")
     #results[file_key] = {'mean': tot_mean/20, 'std_dev': tot_std_dev/20}
-    print(f"Mean: {tot_mean / 20}, Std Dev: {tot_std_dev / 20}")
+    #print(f"Mean: {tot_mean / 20}, Std Dev: {tot_std_dev / 20}")
+    return 0
