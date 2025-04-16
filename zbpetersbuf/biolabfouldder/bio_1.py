@@ -65,5 +65,8 @@ def process_multiple_files(exp_name):
             tot_mean += mean
             tot_std_dev += std_dev
 
-        except Exception as e:
-            print(f"Error processing file {file}: {e}")
+        avg_mean = tot_mean / num_files
+        avg_std_dev = tot_std_dev / num_files
+
+    print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
+
