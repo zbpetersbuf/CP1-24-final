@@ -83,3 +83,31 @@ def process_multiple_files(exp_name):
         print(f"Average Std Dev: {avg_std_dev}")
     else:
         print("No valid data to calculate averages.")
+
+def fcs():
+    # File path to your Excel file
+    file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
+
+    # Read the Excel file, skipping the first two rows
+    df = pd.read_excel(file_path, skiprows=2)
+
+    # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
+    # You can adjust these column names based on your actual file structure
+    x = df['Time']  # Time column (x-values)
+    y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
+
+    # Calculate the average of the y-values
+    avg_y = y.mean()
+
+    # Subtract the average from each y-value
+    y_adjusted = y - avg_y
+
+    # Plot the data
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y_adjusted, label='Adjusted Count Rate', color='b')
+    plt.title('Time vs Adjusted Count Rate')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Adjusted Count Rate (kCounts/s)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
