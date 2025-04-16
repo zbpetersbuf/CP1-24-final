@@ -41,7 +41,7 @@ def fit_gaussian(x_data, y_data):
 
 # Process the data from multiple files
 def process_multiple_files(exp_name):
-    files = bio.filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
+    files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
     
     for file in files:
@@ -54,7 +54,7 @@ def process_multiple_files(exp_name):
         mean, std_dev = fit_gaussian(x_data, y_data)
         
         # Store the results with the file name key
-        file_key = bio.findmdfromcsv(file)
+        file_key = findmdfromcsv(file)
         results[file_key] = {'mean': mean, 'std_dev': std_dev}
     
     return results
