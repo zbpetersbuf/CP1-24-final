@@ -32,20 +32,29 @@ def findmdfromcsv(filepath):
 def gaussian(x, a, b, c, e):
     return a * np.exp(-(x - b)**2 / (2 * c**2)) + e
 
+# Fit the Gaussian to the data
 def fit_gaussian(x_data, y_data):
-    initial_guess = [max(y_data), np.mean(x_data), np.std(x_data), np.min(y_data)]  # Added guess for e (offset)
-    popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)
-    a_fit, b_fit, c_fit, e_fit = popt  # Now includes the offset e
-    return b_fit, c_fit  # Returning only mean and std dev as before
+    initial_guess = [max(y_data), np.mean(x_data), np.std(x_data), np.min(y_data)]  # Initial guesses for [a, b, c, e]
+    popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)  # Fit the Gaussian model
+    a_fit, b_fit, c_fit, e_fit = popt  # Optimized parameters
+    return b_fit, c_fit  # Return mean (b) and standard deviation (c)
 
+# Process the data from multiple files
 def process_multiple_files(exp_name):
-    files = filenamelister(exp_name, '.csv')
+    files = bio.filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     results = {}
+    
     for file in files:
-        data = np.loadtxt(file, delimiter=',')
-        x_data = data[:, 0]
-        y_data = data[:, 1]
+        # Load the data from the CSV file (assuming columns are "Distance_(microns)" and "Gray_Value")
+        data = np.loadtxt(file, delimiter=',', skiprows=1)  # Skip the header
+        x_data = data[:, 0]  # First column: Distance_(microns)
+        y_data = data[:, 1]  # Second column: Gray_Value
+        
+        # Fit the Gaussian and get the mean and std deviation
         mean, std_dev = fit_gaussian(x_data, y_data)
-        file_key = findmdfromcsv(file)
+        
+        # Store the results with the file name key
+        file_key = bio.findmdfromcsv(file)
         results[file_key] = {'mean': mean, 'std_dev': std_dev}
+    
     return results
