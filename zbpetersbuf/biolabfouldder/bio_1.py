@@ -85,11 +85,12 @@ def process_multiple_files(exp_name):
     else:
         print("No valid data to calculate averages.")
 
+
 def fcs():
     # File path to your Excel file
     file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
 
-    # Read the Excel file, skipping the first two rows
+    # Read the Excel file, skipping the first row
     df = pd.read_excel(file_path, skiprows=1)
 
     # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
@@ -101,7 +102,7 @@ def fcs():
     avg_y = y.mean()
 
     # Subtract the average from each y-value (center the data)
-    y_adjusted = y - avg_y
+    y_adjusted = y / avg_y
 
     # Use numpy.correlate to calculate the auto-correlation
     correlation = np.correlate(y_adjusted, y_adjusted, mode='full')
@@ -109,12 +110,21 @@ def fcs():
     # Create a time axis for the correlation plot (lag values)
     lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
 
-    # Plot the correlation
+    # Only keep non-negative lags
+    positive_lags = lag[lag >= 0]
+    positive_correlation = correlation[len(correlation)//2:][lag >= 0]
+
+    # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
-    plt.plot(lag, correlation, label='Auto-correlation', color='b')
+    plt.plot(positive_lags, positive_correlation, label='Auto-correlation', color='b')
     plt.title('Auto-correlation of Count Rate vs Time')
-    plt.xlabel('Lag')
+    plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
+
+    # Set the x-axis to logarithmic scale
+    plt.xscale('log')
+
+    # Adjust plot appearance
     plt.legend()
     plt.grid(True)
     plt.show()
