@@ -44,8 +44,8 @@ def fit_gaussian(x_data, y_data):
 
 def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
-    tot_mean = 0  # Initialize total mean
-    tot_std_dev = 0  # Initialize total standard deviation
+    means = []  # List to store the means
+    std_devs = []  # List to store the standard deviations
 
     for file in files:
         try:
@@ -60,22 +60,22 @@ def process_multiple_files(exp_name):
 
             mean, std_dev = fit_gaussian(distance_data, gray_value_data)
 
+            # Append the mean and standard deviation for this file
             if not np.isnan(mean) and not np.isnan(std_dev):
-                tot_mean += mean
-                tot_std_dev += std_dev
+                means.append(mean)
+                std_devs.append(std_dev)
             else:
                 print(f"Warning: Gaussian fitting failed for file {file}")
 
         except Exception as e:
             print(f"Error processing file {file}: {e}")
 
-    # Calculate averages after all files are processed
-    if len(files) > 0:
-        avg_mean = tot_mean / len(files)
-        avg_std_dev = tot_std_dev / len(files)
-        print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
-    else:
-        print("No valid files processed.")
+    # Print the lists of means and standard deviations
+    print("Means from each file:")
+    print(means)
+    print("Standard Deviations from each file:")
+    print(std_devs)
+
 
 
 
