@@ -112,6 +112,11 @@ def fcs():
     # Create a time axis for the correlation plot (lag values)
     lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
 
+    avg_y = y_adjusted.mean()
+
+    # Subtract the average from each y-value (center the data)
+    y_adjusted = y_adjusted / avg_y
+
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
     plt.plot(lag, correlation, label='Auto-correlation', color='b')
