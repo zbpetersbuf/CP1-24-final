@@ -93,6 +93,8 @@ def fcs():
     # Read the Excel file, skipping the first row
     df = pd.read_excel(file_path, skiprows=1)
 
+    df = df.iloc[200:]
+
     # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
     # Adjust based on your actual data structure
     x = df['Time']  # Time column (x-values)
@@ -109,11 +111,6 @@ def fcs():
 
     # Create a time axis for the correlation plot (lag values)
     lag = np.arange(-len(y_adjusted) + 1, len(y_adjusted))
-
-    avg_y = y.mean()
-
-    # Subtract the average from each y-value (center the data)
-    y_adjusted = y_adjusted / avg_y
 
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
