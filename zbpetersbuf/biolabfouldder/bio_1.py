@@ -7,6 +7,7 @@ import glob
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 #import workinh as wrk
 
 def filenamelister(exp_name, filetype = '.md'):
