@@ -46,6 +46,10 @@ def process_multiple_files(exp_name):
     for file in files:
         # Read CSV file using genfromtxt, skipping the header row
         data = np.genfromtxt(file, delimiter=',', skip_header=1)  # Skip the header row
+        if data.size == 0:
+            print(f"Warning: File {file} has no data to process!")
+            continue
+        
         x_data = data[:, 0]  # First column: Distance_(microns)
         y_data = data[:, 1]  # Second column: Gray_Value
         
