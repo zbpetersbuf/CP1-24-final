@@ -46,7 +46,6 @@ def process_multiple_files(exp_name):
     files = filenamelister(exp_name, '.csv')  # Get list of files with .csv extension
     tot_mean = 0  # Initialize total mean
     tot_std_dev = 0  # Initialize total standard deviation
-    num_files = 20  # Initialize a counter for the number of files processed
 
     for file in files:
         try:
@@ -65,8 +64,14 @@ def process_multiple_files(exp_name):
             tot_mean += mean
             tot_std_dev += std_dev
 
-        avg_mean = tot_mean / num_files
-        avg_std_dev = tot_std_dev / num_files
+        except Exception as e:
+            print(f"Error processing file {file}: {e}")
 
+    # Calculate averages after all files are processed
+    avg_mean = tot_mean / 20
+    avg_std_dev = tot_std_dev / 20
+
+    # Print the averages
     print(f"Average Mean: {avg_mean}, Average Std Dev: {avg_std_dev}")
+
 
