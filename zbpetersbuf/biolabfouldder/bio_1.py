@@ -101,7 +101,7 @@ def fcs():
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
     avg_y = y.mean()
-    y_adjusted = y - avg_y
+    y_adjusted = y/avg_y
 
     # Use numpy.correlate to calculate the auto-correlation
     correlation = np.correlate(y_adjusted, y_adjusted, mode='full')
