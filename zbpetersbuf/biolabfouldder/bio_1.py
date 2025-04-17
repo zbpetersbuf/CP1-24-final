@@ -121,8 +121,8 @@ def fcs3():
     plt.show()
 
 
-def custom_model(x, t_D, t_f):
-    return (1 / (1 + x / t_D)) * (1 / (1 + x / (4 * t_D))**(1/2)) * np.exp(-(x / t_f)**2 / (1 + x / t_D))
+def custom_model(x, t_D, t_f,a):
+    return ((1 / (1 + x / t_D)) * (1 / (1 + x / (4 * t_D))**(1/2)) * np.exp(-(x / t_f)**2 / (1 + x / t_D))/a)
 
 def fcs():
     # File path to your Excel file
@@ -133,26 +133,34 @@ def fcs():
 
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
-    correlation = np.correlate(y, x, mode='full')
+
+    # Perform correlation calculation
+    correlation = np.correlate(y, y, mode='full')  # Auto-correlation of y
     lag = np.arange(-len(x) + 1, len(x))
-    adv_correlation = correlation.max()
+
+    # Normalize the correlation
+    adv_correlation = correlation.max()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
-    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 0.01])  # Initial guess for t_D and t_f
-    t_D_fit, t_f_fit = popt
+    # Fit the custom model with initial guesses for t_D, t_f, and a
+    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 0.01, 1.0])  # Initial guesses
+    t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
+    print(f"Fitted a: {a_fit}")
 
-    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit)
+    # Compute the fitted correlation using the fitted parameters
+    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit, a_fit)
 
+    # Plot the correlation and the fitted curve
     plt.figure(figsize=(10, 6))
     plt.plot(lag, correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
     plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
-    plt.xscale('log')
-    plt.ylim(-0.1, 1.1) 
+    plt.xscale('log')  # Set x-axis to log scale
+    plt.ylim(-0.1, 1.1)  # Set y-axis limits for better visibility
     plt.legend()
     plt.grid(True)
     plt.show()
