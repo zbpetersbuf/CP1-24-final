@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
-#import workinh as wrk
+
 
 def filenamelister(exp_name, filetype = '.md'):
     pattern = os.path.join('/workspaces/CP1-24-final/zbpetersbuf/biodata/', f"*{exp_name.strip()}*{filetype.strip()}")
@@ -86,7 +86,7 @@ def process_multiple_files(exp_name):
         print("No valid data to calculate averages.")
 
 
-def fcs():
+def fcs3():
     # File path to your Excel file
     file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
 
@@ -102,11 +102,8 @@ def fcs():
 
     lag = np.arange(-len(x) + 1, len(x))
 
-    #adv_correlation = correlation.mean()
-
-    #correlation = correlation / adv_correlation
-
-
+    adv_correlation = correlation.mean()
+    correlation = correlation / adv_correlation
 
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
@@ -119,6 +116,46 @@ def fcs():
     plt.xscale('log')
 
     # Adjust plot appearance
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def custom_model(x, t_D, t_f):
+    return (1 / (1 + x / t_D)) * (1 / (1 + x / (4 * t_D))**(1/2)) * np.exp(-(x / t_f)**2 / (1 + x / t_D))
+
+def fcs():
+    # File path to your Excel file
+    file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
+
+    # Read the Excel file, skipping the first row
+    df = pd.read_excel(file_path, skiprows=1)
+
+    # Exclude the first 200 data points
+    df = df.iloc[200:]
+
+    # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
+    x = df['Time']  # Time column (x-values)
+    y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
+
+    # Fit the custom model to the data
+    popt, pcov = curve_fit(custom_model, x, y, p0=[1, 1])  # Initial guess for t_D and t_f
+
+    # Extract fitted parameters
+    t_D_fit, t_f_fit = popt
+    print(f"Fitted t_D: {t_D_fit}")
+    print(f"Fitted t_f: {t_f_fit}")
+
+    # Generate fitted y-values using the custom model
+    y_fitted = custom_model(x, t_D_fit, t_f_fit)
+
+    # Plot the original data and the fitted curve
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y, 'b.', label='Original Data')  # Plot original data points
+    plt.plot(x, y_fitted, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.title('Data Fitting to Custom Model')
+    plt.xlabel('Time')
+    plt.ylabel('Count Rate Channel 1 [kCounts/s]')
     plt.legend()
     plt.grid(True)
     plt.show()
