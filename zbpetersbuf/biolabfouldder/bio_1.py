@@ -130,7 +130,7 @@ def fcs():
 
     # Read the Excel file, skipping the first row
     df = pd.read_excel(file_path, skiprows=1)
-    
+
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
     correlation = np.correlate(y, x, mode='full')
@@ -138,7 +138,7 @@ def fcs():
     adv_correlation = correlation.max()
     correlation = correlation / adv_correlation
 
-    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 10000])  # Initial guess for t_D and t_f
+    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 0.01])  # Initial guess for t_D and t_f
     t_D_fit, t_f_fit = popt
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
