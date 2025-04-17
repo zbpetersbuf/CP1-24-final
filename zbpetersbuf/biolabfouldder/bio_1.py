@@ -147,7 +147,7 @@ def fcs():
     correlation = correlation / adv_correlation
 
     # Fit the model
-    popt, pcov = curve_fit(custom_model, positive_lags, positive_correlation, p0=[1, 1])  # Initial guess for t_D and t_f
+    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[1, 1])  # Initial guess for t_D and t_f
 
     # Extract fitted parameters
     t_D_fit, t_f_fit = popt
@@ -155,12 +155,12 @@ def fcs():
     print(f"Fitted t_f: {t_f_fit}")
 
     # Generate fitted y-values using the custom model
-    fitted_correlation = custom_model(positive_lags, t_D_fit, t_f_fit)
+    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit)
 
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
-    plt.plot(positive_lags, positive_correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
-    plt.plot(positive_lags, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.plot(lag, correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
