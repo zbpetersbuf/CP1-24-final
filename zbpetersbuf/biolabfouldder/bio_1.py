@@ -167,7 +167,7 @@ def fcs():
 
     # Set the x-axis to logarithmic scale
     plt.xscale('log')
-    #plt.ylim(0, 3) 
+    plt.ylim(-0.1, 1.1) 
 
     # Adjust plot appearance
     plt.legend()
