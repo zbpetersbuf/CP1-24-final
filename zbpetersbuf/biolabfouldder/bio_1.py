@@ -162,7 +162,7 @@ def fcs():
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
     plt.xscale('log')  # Set x-axis to log scale
-    plt.ylim(-0.1, 1.1)  # Set y-axis limits for better visibility
+    plt.ylim(-0.1, 100)  # Set y-axis limits for better visibility
     plt.legend()
     plt.grid(True)
     plt.show()
