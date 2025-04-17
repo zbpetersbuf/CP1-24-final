@@ -141,7 +141,7 @@ def fcs():
     adv_correlation = correlation.mean()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
-    mask = lag > 1000  # Mask for lag > 1
+    mask = lag > 1200  # Mask for lag > 1
     lag_filtered = lag[mask]  # Filtered lag values
     correlation_filtered = correlation[mask]  # Filtered correlation values
 
@@ -162,7 +162,7 @@ def fcs():
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
     plt.xscale('log')  # Set x-axis to log scale
-    plt.ylim(-0.1, 5)  # Set y-axis limits for better visibility
+    plt.ylim(-0.1, 3)  # Set y-axis limits for better visibility
     plt.legend()
     plt.grid(True)
     plt.show()
