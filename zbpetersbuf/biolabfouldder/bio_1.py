@@ -142,6 +142,10 @@ def fcs():
     adv_correlation = correlation.max()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
+    mask = x > 1
+    lag = lag[mask]
+    correlation = correlation[mask]
+
     # Fit the custom model with initial guesses for t_D, t_f, and a
     popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 1000, 1.0])  # Initial guesses
     t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
