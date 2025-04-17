@@ -134,11 +134,12 @@ def fcs():
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    x = [a/1000 for a in x]
+    #x = [a/1000 for a in x]
 
     # Perform correlation calculation
     correlation = np.correlate(y, x, mode='full')  # Auto-correlation of y
     lag = np.arange(-len(x) + 1, len(x))
+    lag = [a/1000 for a in lag]
 
     # Normalize the correlation
     adv_correlation = correlation.max()  # Maximum correlation for normalization
