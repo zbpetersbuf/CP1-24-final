@@ -138,7 +138,7 @@ def fcs():
 
     lag = np.arange(-len(x) + 1, len(x))
 
-    adv_correlation = correlation.max()  # Maximum correlation for normalization
+    adv_correlation = correlation.mean()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
     mask = lag > 0  # Mask for lag > 1
