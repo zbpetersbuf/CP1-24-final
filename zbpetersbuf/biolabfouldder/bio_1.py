@@ -138,8 +138,20 @@ def fcs():
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    # Fit the custom model to the data
-    popt, pcov = curve_fit(custom_model, x, y, p0=[1, 1])  # Initial guess for t_D and t_f
+    # Calculate the auto-correlation using np.correlate
+    correlation = np.correlate(y, y, mode='full')
+    lag = np.arange(-len(x) + 1, len(x))
+
+    # Normalize the correlation by its average value
+    adv_correlation = correlation.mean()
+    correlation = correlation / adv_correlation
+
+    # Fit the custom model to the auto-correlation data (ignoring the negative lags)
+    positive_lags = lag[lag >= 0]
+    positive_correlation = correlation[len(correlation)//2:][lag >= 0]
+
+    # Fit the model
+    popt, pcov = curve_fit(custom_model, positive_lags, positive_correlation, p0=[1, 1])  # Initial guess for t_D and t_f
 
     # Extract fitted parameters
     t_D_fit, t_f_fit = popt
@@ -147,15 +159,20 @@ def fcs():
     print(f"Fitted t_f: {t_f_fit}")
 
     # Generate fitted y-values using the custom model
-    y_fitted = custom_model(x, t_D_fit, t_f_fit)
+    fitted_correlation = custom_model(positive_lags, t_D_fit, t_f_fit)
 
-    # Plot the original data and the fitted curve
+    # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
-    plt.plot(x, y, 'b.', label='Original Data')  # Plot original data points
-    plt.plot(x, y_fitted, 'r-', label='Fitted Curve')  # Plot fitted curve
-    plt.title('Data Fitting to Custom Model')
-    plt.xlabel('Time')
-    plt.ylabel('Count Rate Channel 1 [kCounts/s]')
+    plt.plot(positive_lags, positive_correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(positive_lags, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
+    plt.xlabel('Lag (Time Shift)')
+    plt.ylabel('Correlation')
+
+    # Set the x-axis to logarithmic scale
+    plt.xscale('log')
+
+    # Adjust plot appearance
     plt.legend()
     plt.grid(True)
     plt.show()
