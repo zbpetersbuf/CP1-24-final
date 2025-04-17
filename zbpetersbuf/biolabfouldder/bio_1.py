@@ -138,8 +138,9 @@ def fcs():
 
     # Perform correlation calculation
     correlation = np.correlate(y, x, mode='full')  # Auto-correlation of y
-    lag = np.arange(-len(x) + 1, len(x))
-    lag = [a/1000 for a in lag]
+    lag = np.arange(-len(x) + 1, len(x))/1000
+
+    #lag = [a/1000 for a in lag]
 
     # Normalize the correlation
     adv_correlation = correlation.max()  # Maximum correlation for normalization
