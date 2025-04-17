@@ -128,19 +128,16 @@ def fcs():
     # File path to your Excel file
     file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
 
-    # Read the Excel file, skipping the first row
     df = pd.read_excel(file_path, skiprows=1)
 
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    # Perform correlation calculation
     correlation = np.correlate(y, x, mode='full')  # Auto-correlation of y
     #lag = np.arange(-len(x) + 1, len(x))/1000
 
     lag = np.arange(-len(x) + 1, len(x))
 
-    # Normalize the correlation
     adv_correlation = correlation.max()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
@@ -148,7 +145,6 @@ def fcs():
     lag_filtered = lag[mask]  # Filtered lag values
     correlation_filtered = correlation[mask]  # Filtered correlation values
 
-    # Fit the custom model using the filtered data (lag_filtered and correlation_filtered)
     popt, pcov = curve_fit(custom_model, lag_filtered, correlation_filtered, p0=[100, 100, 1.0])  # Initial guesses
     t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
