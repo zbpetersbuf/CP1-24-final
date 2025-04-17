@@ -145,7 +145,7 @@ def fcs():
     lag_filtered = lag[mask]  # Filtered lag values
     correlation_filtered = correlation[mask]  # Filtered correlation values
 
-    popt, pcov = curve_fit(custom_model, lag_filtered, correlation_filtered, p0=[1000, 10, 2])  # Initial guesses
+    popt, pcov = curve_fit(custom_model, lag_filtered, correlation_filtered, p0=[1000, 1000, 2])  # Initial guesses
     t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
