@@ -142,24 +142,24 @@ def fcs():
     adv_correlation = correlation.max()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
-    mask = x > 1
-    lag = lag[mask]
-    correlation = correlation[mask]
+    mask = lag > 0  # Mask for lag > 1
+    lag_filtered = lag[mask]  # Filtered lag values
+    correlation_filtered = correlation[mask]  # Filtered correlation values
 
-    # Fit the custom model with initial guesses for t_D, t_f, and a
-    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 1000, 1.0])  # Initial guesses
+    # Fit the custom model using the filtered data (lag_filtered and correlation_filtered)
+    popt, pcov = curve_fit(custom_model, lag_filtered, correlation_filtered, p0=[10000, 1000, 1.0])  # Initial guesses
     t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
     print(f"Fitted a: {a_fit}")
 
     # Compute the fitted correlation using the fitted parameters
-    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit, a_fit)
+    fitted_correlation = custom_model(lag_filtered, t_D_fit, t_f_fit, a_fit)
 
     # Plot the correlation and the fitted curve
     plt.figure(figsize=(10, 6))
-    plt.plot(lag, correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
-    plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.plot(lag_filtered, correlation_filtered, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag_filtered, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
