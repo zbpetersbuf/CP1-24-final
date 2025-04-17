@@ -146,10 +146,6 @@ def fcs():
     adv_correlation = correlation.mean()
     correlation = correlation / adv_correlation
 
-    # Fit the custom model to the auto-correlation data (ignoring the negative lags)
-    positive_lags = lag[lag >= 0]
-    positive_correlation = correlation[len(correlation)//2:][lag >= 0]
-
     # Fit the model
     popt, pcov = curve_fit(custom_model, positive_lags, positive_correlation, p0=[1, 1])  # Initial guess for t_D and t_f
 
