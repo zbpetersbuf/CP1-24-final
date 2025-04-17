@@ -143,7 +143,7 @@ def fcs():
     correlation = correlation / adv_correlation
 
     # Fit the custom model with initial guesses for t_D, t_f, and a
-    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 0.01, 1.0])  # Initial guesses
+    popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 1000, 1.0])  # Initial guesses
     t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
