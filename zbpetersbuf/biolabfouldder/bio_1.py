@@ -102,9 +102,9 @@ def fcs():
 
     lag = np.arange(-len(x) + 1, len(x))
 
-    adv_correlation = correlation.mean()
+    #adv_correlation = correlation.mean()
 
-    correlation = correlation / adv_correlation
+    #correlation = correlation / adv_correlation
 
 
 
