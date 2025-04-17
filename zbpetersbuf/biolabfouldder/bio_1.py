@@ -143,7 +143,7 @@ def fcs():
     lag = np.arange(-len(x) + 1, len(x))
 
     # Normalize the correlation by its average value
-    adv_correlation = correlation.mean()
+    adv_correlation = correlation.max()
     correlation = correlation / adv_correlation
 
     # Fit the model
