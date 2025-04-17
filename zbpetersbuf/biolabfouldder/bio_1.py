@@ -157,6 +157,7 @@ def fcs():
     # Generate fitted y-values using the custom model
     fitted_correlation = custom_model(lag, t_D_fit, t_f_fit)
 
+    plt.ylim(0, 3) 
     # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
     plt.plot(lag, correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
