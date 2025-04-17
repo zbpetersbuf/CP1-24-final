@@ -133,7 +133,7 @@ def fcs():
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    correlation = np.correlate(y, y, mode='full')  # Auto-correlation of y
+    correlation = np.correlate(y, x, mode='full')  # Auto-correlation of y
     #lag = np.arange(-len(x) + 1, len(x))/1000
 
     lag = np.arange(-len(x) + 1, len(x))
@@ -156,7 +156,7 @@ def fcs():
 
     # Plot the correlation and the fitted curve
     plt.figure(figsize=(10, 6))
-    plt.plot(x, y, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag_filtered, correlation_filtered, 'b.', label='Auto-correlation Data')  # Plot original data points
     plt.plot(lag_filtered, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
