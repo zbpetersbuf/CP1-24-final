@@ -134,7 +134,7 @@ def fcs():
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
 
-    x = x/1000
+    x = [a/1000 for a in x]
 
     # Perform correlation calculation
     correlation = np.correlate(y, x, mode='full')  # Auto-correlation of y
