@@ -130,46 +130,29 @@ def fcs():
 
     # Read the Excel file, skipping the first row
     df = pd.read_excel(file_path, skiprows=1)
-
-    # Exclude the first 200 data points
-    df = df.iloc[200:]
-
-    # Assuming your data has columns 'Time' and 'Count Rate Channel 1 [kCounts/s]'
+    
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
-
-    # Calculate the auto-correlation using np.correlate
     correlation = np.correlate(y, x, mode='full')
     lag = np.arange(-len(x) + 1, len(x))
-
-    # Normalize the correlation by its average value
     adv_correlation = correlation.max()
     correlation = correlation / adv_correlation
 
-    # Fit the model
     popt, pcov = curve_fit(custom_model, lag, correlation, p0=[10000, 10000])  # Initial guess for t_D and t_f
-
-    # Extract fitted parameters
     t_D_fit, t_f_fit = popt
     print(f"Fitted t_D: {t_D_fit}")
     print(f"Fitted t_f: {t_f_fit}")
 
-    # Generate fitted y-values using the custom model
     fitted_correlation = custom_model(lag, t_D_fit, t_f_fit)
 
-    # Plot the correlation with a log scale for the x-axis
     plt.figure(figsize=(10, 6))
     plt.plot(lag, correlation, 'b.', label='Auto-correlation Data')  # Plot original data points
     plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
-
-    # Set the x-axis to logarithmic scale
     plt.xscale('log')
     plt.ylim(-0.1, 1.1) 
-
-    # Adjust plot appearance
     plt.legend()
     plt.grid(True)
     plt.show()
