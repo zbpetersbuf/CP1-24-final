@@ -141,7 +141,7 @@ def fcs():
     adv_correlation = correlation.max()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
 
-    mask = lag > 0  # Mask for lag > 1
+    mask = lag > 1000  # Mask for lag > 1
     lag_filtered = lag[mask]  # Filtered lag values
     correlation_filtered = correlation[mask]  # Filtered correlation values
 
