@@ -121,54 +121,59 @@ def fcs3():
     plt.show()
 
 
-def custom_model(x, t_D,a):
-    return ((1 / (1 + x / t_D)) * (1 / (1 + x / (4 * t_D))**(1/2))/a)
+def custom_model(x, t_D, t_f,a):
+    return ((1 / (1 + x / t_D)) * (1 / (1 + x / (4 * t_D))**(1/2)) * np.exp(-(x / t_f)**2 / (1 + x / t_D))*a)
 
-def fcs(k):
-    # File path to your Excel file
+def fcs(k1, k2):
     file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
 
     df = pd.read_excel(file_path, skiprows=1)
 
     x = df['Time']  # Time column (x-values)
     y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
-
+    
+    lag = np.array([i * 10**(-3) for i in x])  # Convert lag to a NumPy array
+    # Auto-correlation of y
     correlation = np.correlate(y, y, mode='full')  # Auto-correlation of y
-    #lag = np.arange(-len(x) + 1, len(x))/1000
 
-    lag = np.arange(-len(x) + 1, len(x))
-
+    # Normalize the correlation
     adv_correlation = correlation.mean()  # Maximum correlation for normalization
-    correlation = correlation / adv_correlation
+    correlation = correlation/adv_correlation
 
-    mask = lag > k  # Mask for lag > 1
-    lag_filtered = lag[mask]  # Filtered lag values
-    correlation_filtered = correlation[mask]  # Filtered correlation values
+    mid_point = len(correlation) // 2
+    correlation_positive = correlation[mid_point:]
 
-    popt, pcov = curve_fit(custom_model, lag_filtered, correlation_filtered, p0=[1000, 2])  # Initial guesses
-    t_D_fit, a_fit = popt  # Unpack fitted parameters
+    mask = (lag > k1) & (lag < k2)
+    lag = lag[mask]  # Filtered lag values
+    correlation_positive = correlation_positive[mask]  # Filtered correlation values
+
+    p0 = [0.1, 0.02, 0.5]
+
+    # Set bounds for each parameter [lower, upper]
+    lower_bounds = [0, 0, 0]  # Lower bounds for [t_D, t_f, a]
+    upper_bounds = [1, 1, 200]  # Upper bounds for [t_D, t_f, a]
+
+    # Fit the custom model with bounds
+    popt, pcov = curve_fit(custom_model, lag, correlation_positive, p0=p0, bounds=(lower_bounds, upper_bounds))
+
+    t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
     print(f"Fitted t_D: {t_D_fit}")
-
+    print(f"Fitted t_f: {t_f_fit}")
     print(f"Fitted a: {a_fit}")
 
     # Compute the fitted correlation using the fitted parameters
-    fitted_correlation = custom_model(lag_filtered, t_D_fit, a_fit)
+    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit, a_fit)
 
-    # Plot the correlation and the fitted curve
     plt.figure(figsize=(10, 6))
-    plt.plot(lag_filtered, correlation_filtered, 'b.', label='Auto-correlation Data')  # Plot original data points
-    plt.plot(lag_filtered, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.plot(lag, correlation_positive, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
     plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
     plt.xlabel('Lag (Time Shift)')
     plt.ylabel('Correlation')
     plt.xscale('log')  # Set x-axis to log scale
-    #plt.ylim(-0.1, 100)  # Set y-axis limits for better visibility
     plt.legend()
     plt.grid(True)
     plt.show()
-
-
-
 
 
 
@@ -193,6 +198,7 @@ def fcs1(k):
     #lag = np.arange(-len(x) + 1, len(x))/1000
 
     lag = np.arange(-len(x) + 1, len(x))
+    
 
     adv_correlation = correlation.mean()  # Maximum correlation for normalization
     correlation = correlation / adv_correlation
@@ -219,6 +225,185 @@ def fcs1(k):
     plt.ylabel('Correlation')
     plt.xscale('log')  # Set x-axis to log scale
     #plt.ylim(-0.1, 100)  # Set y-axis limits for better visibility
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+
+def exp_decay(x, a, tau, b):
+    return a * np.exp(-x / tau) + b
+
+
+def load_decay_set(set1, set2, k, k2):
+    file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FlipperFLIM.xlsx'
+    df = pd.read_excel(file_path, skiprows=1)
+
+    def process_set(set_index, lower_bound, upper_bound):
+        time_col = 2 * set_index
+        count_col = 2 * set_index + 1
+        x = df.iloc[:, time_col]
+        y = df.iloc[:, count_col]
+        # Apply mask for x values between lower_bound and upper_bound
+        mask = (x > lower_bound) & (x < upper_bound)
+        return x[mask], y[mask]
+
+    # Get data for both sets with the specified bounds
+    x1, y1 = process_set(set1, k, k2)
+    x2, y2 = process_set(set2, k, k2)
+
+    # Fit the exponential decay function and get the parameters and covariance matrix
+    popt1, pcov1 = curve_fit(exp_decay, x1, y1, p0=(y1.max(), 1, y1.min()))
+    popt2, pcov2 = curve_fit(exp_decay, x2, y2, p0=(y2.max(), 1, y2.min()))
+
+    # Compute the standard deviation (error) for the fitted tau values
+    perr1 = np.sqrt(np.diag(pcov1))  # Standard deviation of parameters for set1
+    perr2 = np.sqrt(np.diag(pcov2))  # Standard deviation of parameters for set2
+
+    # Half-life error bars
+    tau_error1 = perr1[1]  # Error for τ from the first fit
+    tau_error2 = perr2[1]  # Error for τ from the second fit
+
+    # Generate the fit lines for plotting
+    x_fit1 = np.linspace(x1.min(), x1.max(), 500)
+    y_fit1 = exp_decay(x_fit1, *popt1)
+
+    x_fit2 = np.linspace(x2.min(), x2.max(), 500)
+    y_fit2 = exp_decay(x_fit2, *popt2)
+
+    # Plot the data and fitted curves
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(x1, y1, 'b.', label=f'Set {set1} Data')
+    plt.plot(x_fit1, y_fit1, 'b-', label=f'Set {set1} Fit (τ ≈ {popt1[1]:.2f} ± {tau_error1:.2f} ns)')
+
+    plt.plot(x2, y2, 'r.', label=f'Set {set2} Data')
+    plt.plot(x_fit2, y_fit2, 'r-', label=f'Set {set2} Fit (τ ≈ {popt2[1]:.2f} ± {tau_error2:.2f} ns)')
+
+    plt.xlabel("Time (ns)")
+    plt.ylabel("Counts")
+    plt.title(f"Fluorescence Decay Fit (Only Time > {k} ns)")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+
+
+def fcs2(k1,k2):
+    file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
+
+    df = pd.read_excel(file_path, skiprows=1)
+
+    lag = df['Time']  # Time column (x-values)
+    y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
+    
+    #lag = np.array([i * 10**(-3) for i in x])  # Convert lag to a NumPy array
+    # Auto-correlation of y
+    correlation = np.correlate(y, y, mode='full')  # Auto-correlation of y
+
+    # Normalize the correlation
+    adv_correlation = correlation.mean()  # Maximum correlation for normalization
+    correlation = (correlation - adv_correlation)/adv_correlation
+
+    #correlation = np.abs(correlation)/adv_correlation
+
+    # Get the second half of the correlation, which corresponds to positive lags
+    mid_point = len(correlation) // 2
+    correlation_positive = correlation[mid_point:]
+
+    mask = (lag > k1) & (lag < k2)
+    lag = lag[mask]  # Filtered lag values
+    correlation_positive = correlation_positive[mask]  # Filtered correlation values
+
+    p0 = [3, 2, 1]
+
+    # Set bounds for each parameter [lower, upper]
+    lower_bounds = [0, 0, 0]  # Lower bounds for [t_D, t_f, a]
+    upper_bounds = [100, 1000, 2]  # Upper bounds for [t_D, t_f, a]
+
+    # Fit the custom model with bounds
+    popt, pcov = curve_fit(custom_model, lag, correlation_positive, p0=p0, bounds=(lower_bounds, upper_bounds))
+
+    t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
+    print(f"Fitted t_D: {t_D_fit}")
+    print(f"Fitted t_f: {t_f_fit}")
+    print(f"Fitted a: {a_fit}")
+
+    # Compute the fitted correlation using the fitted parameters
+    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit, a_fit)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(lag, correlation_positive, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
+    plt.xlabel('Lag (Time Shift)')
+    plt.ylabel('Correlation')
+    plt.xscale('log')  # Set x-axis to log scale
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+
+
+def fcs3(k1,k2):
+    file_path = '/workspaces/CP1-24-final/zbpetersbuf/biodata/FCS_hundert.xlsx'
+
+    df = pd.read_excel(file_path, skiprows=1)
+
+    lag = df['Time']  # Time column (x-values)
+    y = df['Count Rate Channel 1 [kCounts/s]']  # Count Rate Channel 1 [kCounts/s] (y-values)
+    
+    adv_correlation = y.mean()  # Maximum correlation for normalization
+    y = y - adv_correlation
+                   
+    correlation = np.correlate(y, y, mode='full')  # Auto-correlation of y
+
+    # Normalize the correlation
+    adv_correlation = correlation.mean()  # Maximum correlation for normalization
+    #correlation = correlation/adv_correlation
+
+    #adv_correlation = correlation.mean()
+
+    correlation = np.abs(correlation/adv_correlation)
+    adv_correlation = correlation.max()
+    correlation = np.abs(correlation/adv_correlation)
+
+    #correlation = np.abs(correlation)/adv_correlation
+
+    # Get the second half of the correlation, which corresponds to positive lags
+    mid_point = len(correlation) // 2
+    correlation_positive = correlation[mid_point:]
+
+    mask = (lag > k1) & (lag < k2)
+    lag = lag[mask]  # Filtered lag values
+    correlation_positive = correlation_positive[mask]  # Filtered correlation values
+
+    p0 = [0.03, 0.002, 0.5]
+
+    # Set bounds for each parameter [lower, upper]
+    lower_bounds = [0, 0, 0]  # Lower bounds for [t_D, t_f, a]
+    upper_bounds = [1, 10000000, 5]  # Upper bounds for [t_D, t_f, a]
+
+    # Fit the custom model with bounds
+    popt, pcov = curve_fit(custom_model, lag, correlation_positive, p0=p0, bounds=(lower_bounds, upper_bounds))
+
+    t_D_fit, t_f_fit, a_fit = popt  # Unpack fitted parameters
+    print(f"Fitted t_D: {t_D_fit}")
+    print(f"Fitted t_f: {t_f_fit}")
+    print(f"Fitted a: {a_fit}")
+
+    # Compute the fitted correlation using the fitted parameters
+    fitted_correlation = custom_model(lag, t_D_fit, t_f_fit, a_fit)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(lag, correlation_positive, 'b.', label='Auto-correlation Data')  # Plot original data points
+    plt.plot(lag, fitted_correlation, 'r-', label='Fitted Curve')  # Plot fitted curve
+    plt.title('Auto-correlation of Count Rate vs Time and Fitted Model')
+    plt.xlabel('Lag (Time Shift)')
+    plt.ylabel('Correlation')
+    plt.xscale('log')  # Set x-axis to log scale
     plt.legend()
     plt.grid(True)
     plt.show()
