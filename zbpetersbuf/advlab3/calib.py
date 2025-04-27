@@ -172,10 +172,183 @@ def fit_gaussian(coords, x_min, x_max):
 
     x_data, y_data = zip(*filtered_coords)
 
-    A_guess = max(y_data) - min(y_data)  # The amplitude is the difference between max and min y
-    mu_guess = np.mean(x_data)           # The mean is the average of x values
-    sigma_guess = (max(x_data) - min(x_data)) / 4  # Rough estimate for the width
-    c_guess = min(y_data)                # The baseline 'c' is the minimum y value
-    popt, _ = curve_fit(gaussian, x_data, y_data, p0=[A_guess, mu_guess, sigma_guess, c_guess])
+    A_guess = max(y_data) - min(y_data)
+    mu_guess = np.mean(x_data)
+    sigma_guess = (max(x_data) - min(x_data)) / 4
+    c_guess = min(y_data)
+
+    popt, pcov = curve_fit(gaussian, x_data, y_data, p0=[A_guess, mu_guess, sigma_guess, c_guess])
     mu_fit = popt[1]
-    return mu_fit
+    mu_error = np.sqrt(pcov[1, 1])
+    return mu_fit, mu_error
+
+
+
+def fit_gaussian_and_calculate_sigma(exp_name, filetype):
+    """
+    Fit Gaussian curves to data in the specified files and calculate the average of the means.
+
+    Args:
+    exp_name (str): The experiment name (e.g., "merq").
+    filetype (str): The file extension (e.g., ".txt").
+
+    Returns:
+    average_mean (float): The average of the means from all fits.
+    """
+    
+    # Call the function to read the files
+    file_contents = read_files(exp_name, filetype)
+
+    # List to store the means of the fits
+    means = []
+
+    # Define a set of distinct colors from the 'tab10' colormap
+    distinct_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
+                       '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
+    # If there are more than 10 files, we will cycle through the colors
+    if len(file_contents) > 10:
+        color_cycle = distinct_colors * (len(file_contents) // 10 + 1)  # Repeat the cycle if more than 10 files
+    else:
+        color_cycle = distinct_colors[:len(file_contents)]
+
+    # Plot the data and fit Gaussian
+    plt.figure(figsize=(10, 6))
+
+    # Iterate over files and data
+    for idx, (file_path, data) in enumerate(file_contents.items()):
+        # Extract time (x) and value (y) from the data
+        x_data = np.array([point[0] for point in data])  # Wavelength in Angstroms
+        y_data = np.array([point[1] for point in data])  # Intensity
+
+        # Get the color for this plot from the cycle
+        color = color_cycle[idx]
+
+        # Fit the data to the Gaussian function
+        try:
+            # Initial guess for the parameters: amplitude, mean, std dev, and baseline offset
+            initial_guess = [np.max(y_data), np.mean(x_data), np.std(x_data), np.min(y_data)]
+            
+            # Fit the curve to the data
+            popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)
+            
+            # Extract the mean (mu) from the fit parameters
+            a, mu, sigma, b = popt
+            means.append(sigma)  # Store the mean value for calculating the average later
+
+            # Plot the original data with the assigned color
+            plt.plot(x_data, y_data, label=f"{file_path.split('/')[-1]} - Data", color=color)
+            
+            # Plot the fitted Gaussian curve with the assigned color
+            plt.plot(x_data, gaussian(x_data, *popt), label=f"{file_path.split('/')[-1]} - Fit", color=color, linestyle='--')
+
+        except Exception as e:
+            print(f"Error fitting data from {file_path}: {e}")
+
+    # Add labels and title
+    plt.xlabel('Wavelength (Angstroms)')
+    plt.ylabel('Intensity')
+    plt.title(f'Intensity vs Wavelength for {exp_name}')
+
+    # Add a legend
+    plt.legend()
+
+    # Display the plot
+    plt.grid(True)
+    plt.show()
+
+    # Calculate the average of the means from all 5 files
+    average_mean = np.mean(means)
+    print(f"Average mean of the Gaussian fits: {average_mean}")
+    
+    return average_mean
+
+
+def fit_gaussian_and_calculate_sigma_v2(exp_name, filetype):
+    """
+    Fit Gaussian curves to data in the specified files and calculate the average of the means.
+
+    Args:
+    exp_name (str): The experiment name (e.g., "merq").
+    filetype (str): The file extension (e.g., ".txt").
+
+    Returns:
+    average_mean (float): The average of the means from all fits.
+    """
+    
+    # Call the function to read the files
+    file_contents = read_files(exp_name, filetype)
+
+    # List to store the means of the fits
+    means = []
+
+    # Define a set of distinct colors from the 'tab10' colormap
+    distinct_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
+                       '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
+    # If there are more than 10 files, we will cycle through the colors
+    if len(file_contents) > 10:
+        color_cycle = distinct_colors * (len(file_contents) // 10 + 1)  # Repeat the cycle if more than 10 files
+    else:
+        color_cycle = distinct_colors[:len(file_contents)]
+
+    # Plot the data and fit Gaussian
+    plt.figure(figsize=(10, 6))
+
+    # Iterate over files and data
+    for idx, (file_path, data) in enumerate(file_contents.items()):
+        # Extract time (x) and value (y) from the data
+        x_data = np.array([point[0] for point in data])  # Wavelength in Angstroms
+        y_data = np.array([point[1] for point in data])  # Intensity
+
+        # Get the color for this plot from the cycle
+        color = color_cycle[idx]
+
+        # Create a custom label for this run, e.g., "Mercury run 1", "Mercury run 2", ...
+        custom_label = f"Mercury run {idx + 1}"
+
+        # Fit the data to the Gaussian function
+        try:
+            # Initial guess for the parameters: amplitude, mean, std dev, and baseline offset
+            initial_guess = [np.max(y_data), np.mean(x_data), np.std(x_data), -0.05]
+            
+            # Fit the curve to the data
+            popt, _ = curve_fit(gaussian, x_data, y_data, p0=initial_guess)
+            
+            # Extract the mean (mu) from the fit parameters
+            a, mu, sigma, b = popt
+            means.append(sigma)  # Store the mean value for calculating the average later
+
+            # Plot the original data with the assigned color and custom label
+            plt.plot(x_data, y_data, label=f"{custom_label} - Data", color=color)
+            
+            # Plot the fitted Gaussian curve with the assigned color and custom label
+            plt.plot(x_data, gaussian(x_data, *popt), label=f"{custom_label} - Fit", color=color, linestyle='--')
+
+        except Exception as e:
+            print(f"Error fitting data from {file_path}: {e}")
+
+    # Add labels and title
+
+    #plt.xlabel('Wavelength (Angstroms)')
+    plt.xlabel('Count Number')
+
+    plt.ylabel('Intensity')
+    plt.title(f'Intensity vs Count Number for 5 runs of Mercury')
+
+    # Add a legend
+    plt.legend()
+
+    #plt.xlim(5000, 6000)
+    #plt.ylim(-0.1, 0)
+
+
+    # Display the plot
+    plt.grid(True)
+    plt.show()
+
+    # Calculate the average of the means from all 5 files
+    average_mean = np.mean(means)
+    print(f"Average sigma of the Gaussian fits: {average_mean}")
+    
+    return average_mean
